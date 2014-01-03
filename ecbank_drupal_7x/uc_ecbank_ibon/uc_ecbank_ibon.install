@@ -1,0 +1,12 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the uc_ecbank_ibon.module.
+ */
+
+function uc_ecbank_ibon_uninstall() {
+  db_delete('variable')
+    ->condition('name', 'uc_ecbank_ibon_%', 'LIKE')
+    ->execute();
+}

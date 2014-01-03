@@ -1,0 +1,15 @@
+Array
+(
+    [mer_id] => 6885
+    [payment_type] =>  tenpay
+    [amt] => 1229.00
+    [tsr] => 1391820
+    [succ] => 1
+    [mac] => b244dcb2a1fd42349be3419aacb7c2ac98f78b4c
+    [proc_date] => 20130606
+    [proc_time] => 144844
+    [pay_time] =>  
+    [od_sob] => 55
+    [tenpay_no] => 
+    [trigger] => virtual
+)

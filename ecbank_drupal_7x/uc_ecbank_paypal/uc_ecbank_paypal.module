@@ -1,0 +1,239 @@
+<?php
+
+/**
+ * @file
+ * Integrates ecbank_paypal's redirected payment service.
+ */
+
+
+/**
+ * Implementation of hook_menu().
+ */
+function uc_ecbank_paypal_menu() {
+  $items = array();
+
+  $items['cart/ecbank_paypal/complete'] = array(
+    'title' => 'Order complete',
+    'page callback' => 'uc_ecbank_paypal_complete',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'uc_ecbank_paypal.pages.inc',
+  );
+  $items['cart/ecbank_paypal/finalize'] = array(
+    'title' => 'Order complete',
+    'page callback' => 'uc_ecbank_paypal_finalize',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'uc_ecbank_paypal.pages.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_init().
+ */
+function uc_ecbank_paypal_init() {
+  global $conf;
+  $conf['i18n_variables'][] = 'uc_ecbank_paypal_method_title';
+  $conf['i18n_variables'][] = 'uc_ecbank_paypal_checkout_button';
+}
+
+/**
+ * Implementation of hook_ucga_display().
+ */
+function uc_ecbank_paypal_ucga_display() {
+  // Tell UC Google Analytics to display the e-commerce JS on the custom
+  // order completion page for this module.
+  if (arg(0) == 'cart' && arg(1) == 'ecbank_paypal' && arg(2) == 'finalize') {
+    return TRUE;
+  }
+}
+
+/**
+ * Implementation of hook_payment_method().
+ *
+ * @see uc_payment_method_ecbank_paypal()
+ */
+function uc_ecbank_paypal_uc_payment_method() {
+  $path = base_path() . drupal_get_path('module', 'uc_ecbank_paypal');
+  $title = variable_get('uc_ecbank_paypal_method_title', t('綠界 ECBank PayPal'));
+  $title .= '<br /><img src="'. $path .'/logo.gif" style="position: relative; left: 2.5em;">';
+
+  $methods['ecbank_paypal'] = array(
+    'name' => t('[ECBank] PayPal'),
+    'title' => $title,
+    'review' => variable_get('uc_ecbank_paypal_check', FALSE) ? t('PayPal') : t('PayPal'),
+    'desc' => t('Redirect to ecbank_paypal to pay by credit card.'),
+    'callback' => 'uc_payment_method_ecbank_paypal',
+	'redirect' => 'uc_ecbank_paypal_form',
+    'weight' => 3,
+    'checkout' => TRUE,
+    'no_gateway' => TRUE,
+  );
+
+  return $methods;
+}
+
+
+/**
+ * Add ecbank_paypal settings to the payment method settings form.
+ *
+ * @see uc_ecbank_paypal_payment_method()
+ */
+function uc_payment_method_ecbank_paypal($op, &$order, $form = NULL, &$form_state = NULL) {
+  switch ($op) {
+    case 'cart-details':
+	  $build = array();
+      if (variable_get('uc_ecbank_paypay_check', FALSE)) {
+        if ($_SESSION['pay_method'] == 'CK') {
+          $sel = 'CK';
+        }
+        else {
+          $sel = 'CC';
+        }
+        unset($_SESSION['pay_method']);
+
+        $build = array(
+          '#type' => 'select',
+          '#title' => t('Select your payment type:'),
+          '#name' => 'pay_method',
+          '#id' => 'edit-pay-method',
+          '#attributes' => array('class' => array('form-select')),
+          '#default_value' => $sel,
+          '#options' => array(
+            'CC' => t('PayPal'),
+            'CK' => t('Online check'),
+          ),
+        );
+      }
+	  
+      return $build;
+
+    case 'cart-process':
+      if (isset($form_state['values']['panes']['payment']['details']['pay_method'])) {
+        $_SESSION['pay_method'] = $form_state['values']['panes']['payment']['details']['pay_method'];
+      }
+      return;
+
+	
+    case 'settings':
+      $form['uc_ecbank_paypal_sid'] = array(
+        '#type' => 'textfield',
+        '#title' => t('綠界 ECBank 商店代號(必填)'),
+        '#description' => t('請輸入您的 ECBank 商店代號。'),
+        '#default_value' => variable_get('uc_ecbank_paypal_sid', ''),
+        '#size' => 16,
+      );
+      $form['uc_ecbank_paypal_secret_word'] = array(
+        '#type' => 'textfield',
+        '#title' => t('綠界 ECBank 交易加密私鑰(必填)'),
+        '#description' => t('請輸入您的ECBank交易加密私鑰。'),
+        '#default_value' => variable_get('uc_ecbank_paypal_secret_word', 'tango'),
+        '#size' => 16,
+      );
+      $form['uc_ecbank_paypal_language'] = array(
+        '#type' => 'select',
+        '#title' => t('語言偏好'),
+        '#description' => t(''),
+        '#options' => array(
+          'en' => t('English'),
+          'sp' => t('Spanish'),
+          'tw' => t('ChineseCHT'),
+        ),
+        '#default_value' => variable_get('uc_ecbank_paypal_language', 'tw'),
+      );
+      $form['uc_ecbank_paypal_method_title'] = array(
+        '#type' => 'textfield',
+        '#title' => t('付款方式名稱'),
+        '#default_value' => variable_get('uc_ecbank_paypal_method_title', t('綠界 ECBank PayPal')),
+      );
+      $form['uc_ecbank_paypal_checkout_button'] = array(
+        '#type' => 'textfield',
+        '#title' => t('設定付款按鈕文字'),
+        '#description' => t(''),
+        '#default_value' => variable_get('uc_ecbank_paypal_checkout_button', t('Submit Order')),
+      );
+      $form['uc_ecbank_paypal_checkout_type'] = array(
+        '#type' => 'select',
+        '#title' => t('結帳類型'),
+        '#description' => t('單頁結帳只適用於商店出售無形產品使用信用卡付款單。'),
+        '#options' => array(
+          'multi' => t('Multi-page checkout'),
+          'single' => t('Single page checkout'),
+        ),
+        '#default_value' => variable_get('uc_ecbank_paypal_checkout_type', 'multi'),
+      );
+      return $form;
+  }
+}
+
+/**
+ * Form to build the submission to ecbank_paypal.
+ */
+function uc_ecbank_paypal_form($form, &$form_state, $order) {
+  $country = uc_get_country_data(array('country_id' => $order->billing_country));
+  if ($country === FALSE) {
+    $country = array(0 => array('country_iso_code_3' => 'USA'));
+  }
+
+  $data = array(
+    'mer_id' => variable_get('uc_ecbank_paypal_sid', ''),		
+    'payment_type' => 'paypal',		
+    //'setbank' => 'ESUN',						
+    'od_sob' => $order->order_id,
+    'item_name' => $order->order_id,
+    'cur_type' => 'TWD',
+    'amt' => uc_currency_format($order->order_total, FALSE, FALSE, '.'),
+    'cancel_url' => url('cart/ecbank_paypal/complete/'. uc_cart_get_id(), array('absolute' => TRUE)),
+    'return_url' => url('cart/ecbank_paypal/complete/'. uc_cart_get_id(), array('absolute' => TRUE)),
+    
+    //'demo' => variable_get('uc_ecbank_paypal_demo', TRUE) ? 'Y' : 'N',
+    //'lang' => variable_get('uc_ecbank_paypal_language', 'en'),
+    'merchant_order_id' => $order->order_id,
+    //'pay_method' => isset($_SESSION['pay_method']) ? $_SESSION['pay_method'] : 'CC',
+    //'card_holder_name' => substr($order->billing_first_name .' '. $order->billing_last_name, 0, 128),
+    'street_address' => substr($order->billing_street1, 0, 64),
+    'street_address2' => substr($order->billing_street2, 0, 64),
+    'city' => substr($order->billing_city, 0, 64),
+    'state' => uc_get_zone_code($order->billing_zone),
+    'zip' => substr($order->billing_postal_code, 0, 16),
+    'country' => $country[0]['country_iso_code_3'],
+    'email' => substr($order->primary_email, 0, 64),
+    'phone' => substr($order->billing_phone, 0, 16),
+    'id_type' => 1,
+  );
+
+  $i = 0;  
+  foreach ($order->products as $product) {
+    $i++;
+    $data['c_prod_'. $i] = $product->model .','. $product->qty;
+    $data['c_name_'. $i] = $product->title;
+    $data['c_description_'. $i] = '';
+    $data['c_price_'. $i] = uc_currency_format($product->price, FALSE, FALSE, '.');
+  }
+
+  $form['#action'] = _uc_ecbank_paypal_post_url(variable_get('uc_ecbank_paypal_checkout_type', 'multi'));
+
+  foreach ($data as $name => $value) {
+    $form[$name] = array('#type' => 'hidden', '#value' => $value);
+  }
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => variable_get('uc_ecbank_paypal_checkout_button', t('Submit Order')),
+  );
+
+  return $form;
+}
+
+function _uc_ecbank_paypal_post_url($type) {
+  switch ($type) {
+    case 'single':
+      return 'https://ecbank.com.tw/gateway.php';
+    case 'multi':
+    default:
+      return 'https://ecbank.com.tw/gateway.php';
+  }
+}

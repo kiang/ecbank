@@ -1,0 +1,13 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the uc_ecbank_paypal.module.
+ */
+
+function uc_ecbank_paypal_uninstall() {
+  db_delete('variable')
+    ->condition('name', 'uc_ecbank_paypal_%', 'LIKE')
+    ->execute();
+}
+

@@ -1,0 +1,103 @@
+﻿<?xml version="1.0"?>
+<!--
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * @category   Ecbank
+ * @package    Ecbank_EcbankWebatm
+ * @copyright  Copyright (c) 2010 Ecbank (http://www.ecbank.com.tw)
+ */
+-->
+<config>
+    <modules>
+        <Ecbank_EcbankPaypal>
+            <version>1.2.6</version>
+        </Ecbank_EcbankPaypal>
+    </modules>
+    <global>
+        <models>
+            <ecbankpaypal>
+                <class>Ecbank_EcbankPaypal_Model</class>
+            </ecbankpaypal>
+        </models>
+        <helpers>
+	      <ecbankpaypal>
+            <class>Ecbank_EcbankPaypal_Helper</class>
+		  </ecbankpaypal>
+	    </helpers>
+        <resources>
+            <ecbankpaypal_setup>
+                <setup>
+                    <module>Ecbank_EcbankPaypal</module>
+                </setup>
+                <connection>
+                    <use>core_setup</use>
+                </connection>
+            </ecbankpaypal_setup>
+            <ecbankpaypal_write>
+                <connection>
+                    <use>core_write</use>
+                </connection>
+            </ecbankpaypal_write>
+            <ecbankpaypal_read>
+                <connection>
+                    <use>core_read</use>
+                </connection>
+            </ecbankpaypal_read>
+        </resources>
+        <blocks>
+            <ecbankpaypal><class>Ecbank_EcbankPaypal_Block</class></ecbankpaypal>
+        </blocks>
+    </global>
+    <frontend>
+        <secure_url>
+            <ecbankpaypal_processing>/ecbankpaypal/processing</ecbankpaypal_processing>
+        </secure_url>
+        <routers>
+            <ecbankpaypal>
+                <use>standard</use>
+                <args>
+                    <module>Ecbank_EcbankPaypal</module>
+                    <frontName>ecbankpaypal</frontName>
+                </args>
+            </ecbankpaypal>
+        </routers>
+        <translate>
+            <modules>
+                <Ecbank_EcbankPaypal>
+                    <files>
+                        <default>Ecbank_EcbankPaypal.csv</default>
+                    </files>
+                </Ecbank_EcbankPaypal>
+            </modules>
+        </translate>
+        <layout>
+            <updates>
+                <ecbankpaypal>
+                    <file>ecbankpaypal.xml</file>
+                </ecbankpaypal>
+            </updates>
+        </layout>
+    </frontend>
+	<default>
+        <payment>        
+            <ecbankpaypal_paypal>
+                <active>0</active>
+                <model>ecbankpaypal/paypal</model>
+                <order_status>1</order_status>
+                <title>PayPal繳費(Ecbank)</title>
+                <allowspecific>0</allowspecific>
+            </ecbankpaypal_paypal>
+        </payment>
+    </default> 
+</config>

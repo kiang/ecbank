@@ -1,0 +1,109 @@
+﻿<?xml version="1.0"?>
+<!--
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * @category   Ecbank
+ * @package    Ecbank_EcbankWebatm
+ * @copyright  Copyright (c) 2010 Ecbank (http://www.ecbank.com.tw)
+ */
+-->
+<config>
+    <modules>
+        <Gw_Gwecpay>
+            <version>1.2.6</version>
+        </Gw_Gwecpay>
+    </modules>
+    <global>
+        <models>
+            <gwecpay>
+                <class>Gw_Gwecpay_Model</class>
+            </gwecpay>
+        </models>
+        <helpers>
+	      <gwecpay>
+            <class>Gw_Gwecpay_Helper</class>
+		  </gwecpay>
+	    </helpers>
+        <resources>
+            <gwecpay_setup>
+                <setup>
+                    <module>Gw_Gwecpay</module>
+                </setup>
+                <connection>
+                    <use>core_setup</use>
+                </connection>
+            </gwecpay_setup>
+            <gwecpay_write>
+                <connection>
+                    <use>core_write</use>
+                </connection>
+            </gwecpay_write>
+            <gwecpay_read>
+                <connection>
+                    <use>core_read</use>
+                </connection>
+            </gwecpay_read>
+        </resources>
+        <blocks>
+            <gwecpay><class>Gw_Gwecpay_Block</class></gwecpay>
+        </blocks>
+    </global>
+    <frontend>
+        <secure_url>
+            <gwecpay_processing>/gwecpay/processing</gwecpay_processing>
+        </secure_url>
+        <routers>
+            <gwecpay>
+                <use>standard</use>
+                <args>
+                    <module>Gw_Gwecpay</module>
+                    <frontName>gwecpay</frontName>
+                </args>
+            </gwecpay>
+        </routers>
+        <translate>
+            <modules>
+                <Gw_Gwecpay>
+                    <files>
+                        <default>Gw_Gwecpay.csv</default>
+                    </files>
+                </Gw_Gwecpay>
+            </modules>
+        </translate>
+        <layout>
+            <updates>
+                <gwecpay>
+                    <file>gwecpay.xml</file>
+                </gwecpay>
+            </updates>
+        </layout>
+    </frontend>
+	<default>
+        <payment>        
+            <gwecpay_ecpay>
+                <active>0</active>
+                <model>gwecpay/ecpay</model>
+                <order_status>1</order_status>
+                <title>線上信用卡繳費(Ecpay)</title>
+                <allowspecific>0</allowspecific>
+                <use_store_currency>0</use_store_currency>
+                <request_type>authorize</request_type>
+				<transaction_mode>test</transaction_mode>
+				<fix_contact>1</fix_contact>
+				<hide_contact>0</hide_contact>
+                <enable_online_operations>0</enable_online_operations>
+            </gwecpay_ecpay>
+        </payment>
+    </default> 
+</config>

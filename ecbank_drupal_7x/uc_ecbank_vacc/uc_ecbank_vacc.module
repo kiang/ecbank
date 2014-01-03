@@ -1,0 +1,371 @@
+<?php
+
+/**
+ * @file Provides the check/money order, ecbank_vacc, and "other" payment methods.
+ */
+
+/*******************************************************************************
+ * Hook Functions (Drupal)
+ ******************************************************************************/
+
+function uc_ecbank_vacc_menu() {
+  $items = array();
+
+  $items['cart/ecbank_vacc/complete'] = array(
+    'title' => 'Order complete',
+    'page callback' => 'uc_ecbank_vacc_complete',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'uc_ecbank_vacc.pages.inc',
+  );
+  $items['cart/ecbank_vacc/finalize'] = array(
+    'title' => 'Order complete',
+    'page callback' => 'uc_ecbank_vacc_finalize',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'uc_ecbank_vacc.pages.inc',
+  );
+
+  return $items;
+}
+
+
+/**
+ * Implementation of hook_init().
+ */
+function uc_ecbank_vacc_init() {
+  global $conf;
+  $conf['i18n_variables'][] = 'uc_ecbank_vacc_method_title';
+  $conf['i18n_variables'][] = 'uc_ecbank_vacc_checkout_button';
+}
+
+/**
+ * Implementation of hook_payment_method().
+ */
+
+function uc_ecbank_vacc_txt($vaccno,$amt,$od_sob,$bankcode) {
+	  	   $rstr = '<table width=100% border=1 align=center cellpadding=3 cellspacing=1>
+                   <tr>
+                     <td align=center bgcolor=#FFFF99>付款方式</td>
+                     <td width=235 bgcolor=#FFFF99>銀行轉帳 --- 轉帳銀行代碼('.$bankcode.')</td>
+                   </tr><tr>
+                   </tr><tr>
+                     <td align=center>銀行轉帳帳戶</td><td>'.$vaccno.'</td>
+                   </tr><tr>
+                     <td align=center>繳費金額</td><td>'.intval($amt).'元</td>
+                   </tr><tr>
+                     <td align=center>訂單編號</td><td>'.$od_sob.'</td>
+                   </tr>                   
+                   <tr>
+                     <td colspan=2>請記下上列轉帳銀行代碼及轉帳帳戶,至最近的提款機台(ATM)操作轉帳,<br>便可完成繳費,繳費之收據請留存以供備核,繳費之後才算完成購物流程</td>
+                   </tr>
+                   <tr>
+                     <td colspan=2 align=center><br>
+                       本線上金流機制採用&lt; <a href=http://www.ecbank.com.tw target=_blank>綠界科技 ECBank 線上支付平台</a> &gt 請安心使用
+	  			            <hr>
+	  			          <strong>要點選下方的"'.variable_get('uc_ecbank_vacc_checkout_button', t('Submit Order')).'"鈕才算完成訂單程序喔</strong>
+	  			     </td></tr></table>';		
+	  			return $rstr;
+}
+
+function uc_ecbank_vacc_uc_payment_method() {
+  $path = base_path() . drupal_get_path('module', 'uc_ecbank_vacc');
+  $title = variable_get('uc_ecbank_vacc_method_title', t('綠界 ECBank 虛擬帳號支付'));
+  $title .= '<br /><img src="' . $path .'/logo.gif" style="position: relative; left: 2.5em;">';  
+ 
+  $methods['ecbank_vacc'] = array(
+    'name' => t('[ECBank] Vacc'),
+    'title' => $title,
+    'review' => variable_get('uc_ecbank_vacc_check', FALSE) ? t('vacc') : t('vacc'),
+    'desc' => t('Redirect to ecbank_barcode to pay by credit card.'),
+    'callback' => 'uc_payment_method_ecbank_vacc',
+    'weight' => 3,
+    'checkout' => TRUE,
+    'no_gateway' => TRUE,
+  );
+  return $methods;
+}
+
+/**
+ * Handle the Cash on Delivery payment method.
+ */
+function uc_payment_method_ecbank_vacc($op, &$order, $form = NULL, &$form_state = NULL) {
+  switch ($op) {
+    case 'cart-details':
+	  $build = array();
+      if (variable_get('uc_ecbank_vacc_check', FALSE)) {
+        if ($_SESSION['pay_method'] == 'CK') {
+          $sel = 'CK';
+        }
+        else {
+          $sel = 'CC';
+        }
+        unset($_SESSION['pay_method']);
+
+        $build = array(
+          '#type' => 'select',
+          '#title' => t('Select your payment type:'),
+          '#name' => 'pay_method',
+          '#id' => 'edit-pay-method',
+          '#attributes' => array('class' => array('form-select')),
+          '#default_value' => $sel,
+          '#options' => array(
+            'CC' => t('vacc'),
+            'CK' => t('vacc'),
+          ),
+        );
+      }
+	  
+      return $build;
+
+    case 'cart-process':
+      if (isset($form_state['values']['panes']['payment']['details']['pay_method'])) {
+        $_SESSION['pay_method'] = $form_state['values']['panes']['payment']['details']['pay_method'];
+      }
+
+    case 'cart-review':    
+   
+    //ecbank_vacc start ----------------------------    
+    $subtotal = uc_currency_format($order->order_total, FALSE, FALSE, '.');
+  
+     if($subtotal <= 9) {			
+				  drupal_set_message(t('綠界 ECBank 虛擬帳號繳費, 最低付款金額為 10 元.'), 'error');
+				  drupal_goto('cart/checkout');
+		      exit;
+	} 
+	if($subtotal > 2000000) {
+	  	    drupal_set_message(t('綠界 ECBank 虛擬帳號繳費, 最高付款金額不可高於2百萬元.'), 'error');
+				  drupal_goto('cart/checkout');
+		      exit;
+	} 
+  
+    if($_SESSION['ecbank_vacc_payment'] != "".$_SESSION['cart_order']."_".$subtotal."" || $_SESSION['ecbank_vacc_vaccno'] == "") {     
+     $param = array (
+     // ecbank主機 
+     'ecbank_gateway' =>  'https://ecbank.com.tw/gateway.php',
+     'mer_id' => variable_get('uc_ecbank_vacc_sid', ''),		
+     'payment_type' => 'vacc',		//付款方式   
+     'setbank' => 'ESUN',  
+     // 商店設定在ECBank管理後台的交易加密私鑰
+     'enc_key' => variable_get('uc_ecbank_vacc_secret_word', ''),     
+     'od_sob' => $_SESSION['cart_order'],  
+     'prd_desc' => 'drupal',
+     //允許繳費有效天數
+     'expire_day' => variable_get('uc_ecbank_vacc_expire_day', ''),
+     'cur_type' => 'TWD',
+     // 繳費金額
+     'amt' => round($subtotal),
+     // 付款完成通知網址
+     'cancel_url' => url('cart/ecbank_vacc/complete/'. uc_cart_get_id(), array('absolute' => TRUE)),
+     'return_url' => url('cart/ecbank_vacc/complete/'. uc_cart_get_id(), array('absolute' => TRUE))
+     );
+     
+     $strAuth = '';
+     $nvpStr = 'payment_type='.$param['payment_type'].
+               '&od_sob='.$param['od_sob'].
+               '&mer_id='.$param['mer_id'].
+               '&enc_key='.$param['enc_key'].
+               '&setbank='.$param['setbank'].
+               '&amt='.$param['amt'].
+               '&expire_day='.$param['expire_day'].
+               '&prd_desc='.$param['prd_desc']. 
+               '&ok_url='.$param['return_url'];
+      $ch = curl_init();
+      curl_setopt($ch, CURLOPT_URL,$param['ecbank_gateway']);
+      curl_setopt($ch, CURLOPT_VERBOSE, 1);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
+      curl_setopt($ch, CURLOPT_POST, 1);
+      curl_setopt($ch, CURLOPT_POSTFIELDS,$nvpStr);
+      $strAuth = curl_exec($ch);
+   
+      if (curl_errno($ch)) $strAuth = false;
+      curl_close($ch);
+	  	
+      if($strAuth) {
+          parse_str($strAuth, $res);
+          if(!isset($res['error']) || $res['error'] != '0') {
+   	              $text='取號錯誤:錯誤代碼 = ('.$res['error'].'), 請重新整理本頁取號!';
+          } else {	
+                  $_SESSION['ecbank_vacc_payment'] = "".$_SESSION['cart_order']."_".$subtotal."";                  
+                  $_SESSION['ecbank_vacc_od_sob'] = $res['od_sob'];                
+                  $_SESSION['ecbank_vacc_vaccno'] = $res['vaccno'];
+                  $_SESSION['ecbank_vacc_bankcode'] = $res['bankcode'];
+                  
+                  $text = uc_ecbank_vacc_txt($_SESSION['ecbank_vacc_vaccno'],$subtotal,$_SESSION['ecbank_vacc_od_sob'],$_SESSION['ecbank_vacc_bankcode']);
+                
+           }
+     }else{
+       	$text='取號錯誤:錯誤代碼 = ('.$res['error'].'), 請重新整理本頁取號!';
+     }
+  }else{
+    $text = uc_ecbank_vacc_txt($_SESSION['ecbank_vacc_vaccno'],$subtotal,$_SESSION['ecbank_vacc_od_sob'],$_SESSION['ecbank_vacc_bankcode']); 
+ } 
+  //ecbank_vacc end ----------------------------    
+      $review[] = array('title' => t('vacc'), 'data' => $text);
+         
+      return $review;
+
+    case 'order-view':
+   /* case 'customer-view':
+      return $output;*/
+
+   /* case 'order-details':
+      return $details;*/
+
+    case 'edit-process':      
+      return;
+
+    case 'order-load':
+      break;  
+  /*  case 'order-submit':
+      if ($order->payment_method == 'ecbank_vacc' &&
+          ($max = variable_get('uc_ecbank_vacc_max_order', 0)) > 0 &&
+          is_numeric($max) &&
+          $order->order_total > $max) {
+          $result[] = array(
+            'pass' => FALSE,
+            'message' => t('Your final order total exceeds the maximum for ecbank_vacc payment.  Please go back and select a different method of payment.')
+          );
+          $_SESSION['expanded_panes'][] = 'payment';
+          return $result;
+      }*/
+    /*case 'order-save':
+      // clear cart
+      uc_cart_empty($_SESSION['cart_order']);  
+      
+      break; */
+   /* case 'order-delete':
+      db_query("DELETE FROM {uc_payment_ecbank_vacc} WHERE order_id = %d", $order->order_id);
+      
+      break;*/
+
+    case 'settings':
+      $form['uc_ecbank_vacc_sid'] = array(
+        '#type' => 'textfield',
+        '#title' => t('綠界 ECBank 商店代號(必填)'),
+        '#description' => t('請輸入您的 ECBank 商店代號。'),
+        '#default_value' => variable_get('uc_ecbank_vacc_sid', ''),
+        '#size' => 16,
+      );
+      $form['uc_ecbank_vacc_secret_word'] = array(
+        '#type' => 'textfield',
+        '#title' => t('綠界 ECBank 交易加密私鑰(必填)'),
+        '#description' => t('請輸入您的 ECBank 交易加密私鑰。'),
+        '#default_value' => variable_get('uc_ecbank_vacc_secret_word', 'tango'),
+        '#size' => 16,
+      );
+      $form['uc_ecbank_vacc_expire_day'] = array(
+        '#type' => 'select',
+        '#title' => t('交易期限日'),
+        '#description' => t('說明:以7/1超商條碼起算3天,到期日為 7/4 23點59分時止。'),
+        '#options' => array(
+          '1' => t('1 day'),
+          '2' => t('2 day'),
+          '3' => t('3 day'),
+          '4' => t('4 day'),
+          '5' => t('5 day'),
+          '6' => t('6 day'),
+          '7' => t('7 day'),
+          '8' => t('8 day'),
+          '9' => t('9 day'),
+          '10' => t('10 day'),
+          '11' => t('11 day'),
+          '12' => t('12 day'),
+          '13' => t('13 day'),
+          '14' => t('14 day'),
+          '15' => t('15 day'),
+          '16' => t('16 day'),
+          '17' => t('17 day'),
+          '18' => t('18 day'),
+          '19' => t('19 day'),
+          '20' => t('20 day'),          
+          '21' => t('21 day'),
+          '22' => t('22 day'),
+          '23' => t('23 day'),
+          '24' => t('24 day'),
+          '25' => t('25 day'),
+          '26' => t('26 day'),
+          '27' => t('27 day'),
+          '28' => t('28 day'),
+          '29' => t('29 day'),
+          '30' => t('30 day'),
+          '31' => t('31 day'),
+          '32' => t('32 day'),
+          '33' => t('33 day'),
+          '34' => t('34 day'),
+          '35' => t('35 day'),
+          '36' => t('36 day'),
+          '37' => t('37 day'),
+          '38' => t('38 day'),
+          '39' => t('39 day'),
+          '40' => t('40 day'),
+          '41' => t('41 day'),
+          '42' => t('42 day'),
+          '43' => t('43 day'),
+          '44' => t('44 day'),
+          '45' => t('45 day'),
+          '46' => t('46 day'),
+          '47' => t('47 day'),
+          '48' => t('48 day'),
+          '49' => t('49 day'),
+          '50' => t('50 day'),
+          '51' => t('51 day'),
+          '52' => t('52 day'),
+          '53' => t('53 day'),
+          '54' => t('54 day'),
+          '55' => t('55 day'),
+          '56' => t('56 day'),
+          '57' => t('57 day'),
+          '58' => t('58 day'),
+          '59' => t('59 day'),
+          '60' => t('60 day'),
+        ),
+        '#default_value' => variable_get('uc_ecbank_vacc_expire_day', '7'),
+      );
+      $form['uc_ecbank_vacc_demo'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('啟用Domo模示，讓您處理假訂單測試目的。'),
+        '#default_value' => variable_get('uc_ecbank_vacc_demo', TRUE),
+      );
+      $form['uc_ecbank_vacc_language'] = array(
+        '#type' => 'select',
+        '#title' => t('語言偏好'),
+        '#description' => t(''),
+        '#options' => array(
+		  'tw' => t('ChineseCHT'),
+          'en' => t('English'),
+          'sp' => t('Spanish'),          
+        ),
+        '#default_value' => variable_get('uc_ecbank_vacc_language', 'tw'),
+      );
+      $form['uc_ecbank_vacc_method_title'] = array(
+        '#type' => 'textfield',
+        '#title' => t('付款方式名稱'),
+        '#default_value' => variable_get('uc_ecbank_vacc_method_title', t('綠界 ECBank 虛擬帳號支付'))
+      );
+      $form['uc_ecbank_vacc_checkout_button'] = array(
+        '#type' => 'textfield',
+        '#title' => t('設定付款按鈕文字'),
+        '#description' => t(''),
+        '#default_value' => variable_get('uc_ecbank_vacc_checkout_button', t('Submit Order')),
+      );
+	  $form['uc_ecbank_vacc_method_title_icons'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Show credit card icons beside the payment method title.'),
+        '#default_value' => variable_get('uc_ecbank_vacc_method_title_icons', TRUE),
+      );
+      $form['uc_ecbank_vacc_checkout_type'] = array(
+        '#type' => 'select',
+        '#title' => t('結帳類型'),
+        '#description' => t('單頁結帳只適用於商店出售無形產品使用信用卡付款單。'),
+        '#options' => array(
+          'multi' => t('Multi-page checkout'),
+          'single' => t('Single page checkout'),
+        ),
+        '#default_value' => variable_get('uc_ecbank_vacc_checkout_type', 'multi'),
+      );
+	  return $form;
+  }
+}

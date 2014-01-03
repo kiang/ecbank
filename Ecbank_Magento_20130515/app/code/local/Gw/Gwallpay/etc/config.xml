@@ -1,0 +1,109 @@
+﻿<?xml version="1.0"?>
+<!--
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * @category   Ecbank
+ * @package    Ecbank_EcbankWebatm
+ * @copyright  Copyright (c) 2010 Ecbank (http://www.ecbank.com.tw)
+ */
+-->
+<config>
+    <modules>
+        <Gw_Gwallpay>
+            <version>1.2.6</version>
+        </Gw_Gwallpay>
+    </modules>
+    <global>
+        <models>
+            <gwallpay>
+                <class>Gw_Gwallpay_Model</class>
+            </gwallpay>
+        </models>
+        <helpers>
+	      <gwallpay>
+            <class>Gw_Gwallpay_Helper</class>
+		  </gwallpay>
+	    </helpers>
+        <resources>
+            <gwallpay_setup>
+                <setup>
+                    <module>Gw_Gwallpay</module>
+                </setup>
+                <connection>
+                    <use>core_setup</use>
+                </connection>
+            </gwallpay_setup>
+            <gwallpay_write>
+                <connection>
+                    <use>core_write</use>
+                </connection>
+            </gwallpay_write>
+            <gwallpay_read>
+                <connection>
+                    <use>core_read</use>
+                </connection>
+            </gwallpay_read>
+        </resources>
+        <blocks>
+            <gwallpay><class>Gw_Gwallpay_Block</class></gwallpay>
+        </blocks>
+    </global>
+    <frontend>
+        <secure_url>
+            <gwallpay_processing>/gwallpay/processing</gwallpay_processing>
+        </secure_url>
+        <routers>
+            <gwallpay>
+                <use>standard</use>
+                <args>
+                    <module>Gw_Gwallpay</module>
+                    <frontName>gwallpay</frontName>
+                </args>
+            </gwallpay>
+        </routers>
+        <translate>
+            <modules>
+                <Gw_Gwallpay>
+                    <files>
+                        <default>Gw_Gwallpay.csv</default>
+                    </files>
+                </Gw_Gwallpay>
+            </modules>
+        </translate>
+        <layout>
+            <updates>
+                <gwallpay>
+                    <file>gwallpay.xml</file>
+                </gwallpay>
+            </updates>
+        </layout>
+    </frontend>
+	<default>
+        <payment>        
+            <gwallpay_allpay>
+                <active>0</active>
+                <model>gwallpay/allpay</model>
+                <order_status>1</order_status>
+                <title>線上歐付寶信用卡繳費(allpay)</title>
+                <allowspecific>0</allowspecific>
+                <use_store_currency>0</use_store_currency>
+                <request_type>authorize</request_type>
+				<transaction_mode>test</transaction_mode>
+				<fix_contact>1</fix_contact>
+				<hide_contact>0</hide_contact>
+                <enable_online_operations>0</enable_online_operations>
+            </gwallpay_allpay>
+        </payment>
+    </default> 
+</config>

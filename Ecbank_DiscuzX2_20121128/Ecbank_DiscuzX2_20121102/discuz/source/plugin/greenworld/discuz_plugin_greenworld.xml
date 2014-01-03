@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="ISO-8859-1"?>
+<root>
+	<item id="Title"><![CDATA[Discuz! Plugin]]></item>
+	<item id="Version"><![CDATA[X2]]></item>
+	<item id="Data">
+		<item id="plugin">
+			<item id="available"><![CDATA[1]]></item>
+			<item id="adminid"><![CDATA[1]]></item>
+			<item id="name"><![CDATA[台灣綠界金流]]></item>
+			<item id="identifier"><![CDATA[greenworld]]></item>
+			<item id="description"><![CDATA[台灣綠界金流。]]></item>
+			<item id="datatables"><![CDATA[]]></item>
+			<item id="directory"><![CDATA[greenworld/]]></item>
+			<item id="copyright"><![CDATA[GreenWorld Inc.]]></item>
+			<item id="version"><![CDATA[1.0.5]]></item>
+			<item id="__modules">
+				<item id="0">
+					<item id="name"><![CDATA[greenworld]]></item>
+					<item id="menu"><![CDATA[]]></item>
+					<item id="url"><![CDATA[]]></item>
+					<item id="type"><![CDATA[11]]></item>
+					<item id="adminid"><![CDATA[0]]></item>
+					<item id="displayorder"><![CDATA[0]]></item>
+					<item id="navtitle"><![CDATA[]]></item>
+					<item id="navicon"><![CDATA[]]></item>
+					<item id="navsubname"><![CDATA[]]></item>
+					<item id="navsuburl"><![CDATA[]]></item>
+				</item>
+			</item>
+		</item>
+		<item id="version"><![CDATA[X2]]></item>
+		<item id="intro"><![CDATA[綠界金流提供臺灣地區多種金流服務，目前提供多種繳款服務，若您還沒有一個ECBank帳號，請上官網註冊
+http://www.ecbank.com.tw
+若您還沒有一個ECPay(金流刷卡)帳號，請上官網申請註冊
+http://www.ecpay.com.tw]]></item>
+		<item id="installfile"><![CDATA[install.php]]></item>
+		<item id="uninstallfile"><![CDATA[uninstall.php]]></item>
+		<item id="var">
+			<item id="0">
+				<item id="displayorder"><![CDATA[0]]></item>
+				<item id="title"><![CDATA[ECBank商店代號]]></item>
+				<item id="description"><![CDATA[請輸入您在綠界金流ECBank中，所申請的商店代碼]]></item>
+				<item id="variable"><![CDATA[ecbank_id]]></item>
+				<item id="type"><![CDATA[text]]></item>
+				<item id="value"><![CDATA[]]></item>
+				<item id="extra"><![CDATA[]]></item>
+			</item>
+			<item id="1">
+				<item id="displayorder"><![CDATA[1]]></item>
+				<item id="title"><![CDATA[ECBank加密私鑰]]></item>
+				<item id="description"><![CDATA[請輸入您在綠界金流ECBank中，所申請的加密私鑰]]></item>
+				<item id="variable"><![CDATA[ecbank_pkey]]></item>
+				<item id="type"><![CDATA[text]]></item>
+				<item id="value"><![CDATA[]]></item>
+				<item id="extra"><![CDATA[]]></item>
+			</item>
+			<item id="2">
+				<item id="displayorder"><![CDATA[9]]></item>
+				<item id="title"><![CDATA[付款方式選擇]]></item>
+				<item id="description"><![CDATA[會員在充值時，可以使用ECBANK或ECPay中的哪些付款方式
+請輸入數字0代表不啟用，1代表啟用並以逗號分隔，如1,0,1,0,0,0,0,0,0,0
+1 虛擬帳戶 
+2 webATM 
+3 超商條碼 
+4 超商代碼(全家、萊爾富) 
+5 超商代碼(7-11) 
+6 PayPal
+7 ECPay
+8 ECPay-3期
+9 ECPay-6期
+10 ECPay-12期
+11 支付寶Alipay
+12 歐付寶Allpay
+13 銀聯卡Unionpay]]></item>
+				<item id="variable"><![CDATA[ec_option]]></item>
+				<item id="type"><![CDATA[text]]></item>
+				<item id="value"><![CDATA[1,1,1,1,1,1,1,1,1,1,1,1,1]]></item>
+				<item id="extra"><![CDATA[1 = 虛擬帳戶繳款
+2 = webATM繳款]]></item>
+			</item>
+			<item id="3">
+				<item id="displayorder"><![CDATA[2]]></item>
+				<item id="title"><![CDATA[ECPay商店代號(未分期)]]></item>
+				<item id="description"><![CDATA[如果您有ECPay商店代號，請在此輸入您的商店代號，此欄位為未分期之商店代號]]></item>
+				<item id="variable"><![CDATA[ecpay_id]]></item>
+				<item id="type"><![CDATA[text]]></item>
+				<item id="value"><![CDATA[]]></item>
+				<item id="extra"><![CDATA[]]></item>
+			</item>
+			<item id="4">
+				<item id="displayorder"><![CDATA[3]]></item>
+				<item id="title"><![CDATA[ECPay商家檢查碼(未分期)]]></item>
+				<item id="description"><![CDATA[請登入您的ECPay後台，在此輸入您的商家檢查碼，此欄位為未分期之商家檢查碼]]></item>
+				<item id="variable"><![CDATA[ecpay_chk]]></item>
+				<item id="type"><![CDATA[text]]></item>
+				<item id="value"><![CDATA[]]></item>
+				<item id="extra"><![CDATA[]]></item>
+			</item>
+			<item id="5">
+				<item id="displayorder"><![CDATA[6]]></item>
+				<item id="title"><![CDATA[ECPay信用卡分期利率-3期]]></item>
+				<item id="description"><![CDATA[請輸入您與銀行約定的信用卡分3期利率，如您約定的是1%，請輸入0.01]]></item>
+				<item id="variable"><![CDATA[ecpay_3num]]></item>
+				<item id="type"><![CDATA[text]]></item>
+				<item id="value"><![CDATA[0.01]]></item>
+				<item id="extra"><![CDATA[]]></item>
+			</item>
+			<item id="6">
+				<item id="displayorder"><![CDATA[7]]></item>
+				<item id="title"><![CDATA[ECPay信用卡分期利率-6期]]></item>
+				<item id="description"><![CDATA[請輸入您與銀行約定的信用卡分6期利率，如您約定的是2%，請輸入0.02]]></item>
+				<item id="variable"><![CDATA[ecpay_6num]]></item>
+				<item id="type"><![CDATA[text]]></item>
+				<item id="value"><![CDATA[0.02]]></item>
+				<item id="extra"><![CDATA[]]></item>
+			</item>
+			<item id="7">
+				<item id="displayorder"><![CDATA[8]]></item>
+				<item id="title"><![CDATA[ECPay信用卡分期利率-12期]]></item>
+				<item id="description"><![CDATA[請輸入您與銀行約定的信用卡分12期利率，如您約定的是3%，請輸入0.03]]></item>
+				<item id="variable"><![CDATA[ecpay_12num]]></item>
+				<item id="type"><![CDATA[text]]></item>
+				<item id="value"><![CDATA[0.03]]></item>
+				<item id="extra"><![CDATA[]]></item>
+			</item>
+			<item id="8">
+				<item id="displayorder"><![CDATA[4]]></item>
+				<item id="title"><![CDATA[ECPay商店代號(分期)]]></item>
+				<item id="description"><![CDATA[如果您有ECPay商店代號，請在此輸入您的商店代號，此欄位為分期之商店代號(與未分期不同)]]></item>
+				<item id="variable"><![CDATA[ecpay_id2]]></item>
+				<item id="type"><![CDATA[text]]></item>
+				<item id="value"><![CDATA[]]></item>
+				<item id="extra"><![CDATA[]]></item>
+			</item>
+			<item id="9">
+				<item id="displayorder"><![CDATA[5]]></item>
+				<item id="title"><![CDATA[ECPay商家檢查碼(分期)]]></item>
+				<item id="description"><![CDATA[請登入您的ECPay後台，在此輸入您的商家檢查碼，此欄位為未分期之商家檢查碼(與未分期不同)]]></item>
+				<item id="variable"><![CDATA[ecpay_chk2]]></item>
+				<item id="type"><![CDATA[text]]></item>
+				<item id="value"><![CDATA[]]></item>
+				<item id="extra"><![CDATA[]]></item>
+			</item>
+		</item>
+	</item>
+</root>

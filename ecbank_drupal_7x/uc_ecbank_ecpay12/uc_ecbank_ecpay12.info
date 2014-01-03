@@ -1,0 +1,12 @@
+name = ecbank_ecpay12
+description = 啟動綠界 ECBank ECPay12 繳費模組。
+dependencies[] = uc_payment
+package = Ubercart - payment
+core = 7.x
+
+; Information added by drupal.org packaging script on 2010-08-04
+version = "7.x-3.0-beta4"
+core = "7.x"
+project = "ubercart"
+datestamp = "1311619619"
+

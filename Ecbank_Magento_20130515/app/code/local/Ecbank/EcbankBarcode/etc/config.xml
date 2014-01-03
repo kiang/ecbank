@@ -1,0 +1,121 @@
+﻿<?xml version="1.0"?>
+<!--
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * @category   Ecbank
+ * @package    Ecbank_EcbankWebatm
+ * @copyright  Copyright (c) 2010 Ecbank (http://www.ecbank.com.tw)
+ */
+-->
+<config>
+    <modules>
+        <Ecbank_EcbankBarcode>
+            <version>1.2.6</version>
+        </Ecbank_EcbankBarcode>
+    </modules>
+    <global>	
+        <models>
+            <ecbankbarcode>
+                <class>Ecbank_EcbankBarcode_Model</class>
+            </ecbankbarcode>
+        </models>
+        <helpers>
+	      <ecbankbarcode>
+            <class>Ecbank_EcbankBarcode_Helper</class>
+		  </ecbankbarcode>
+	    </helpers>
+        <resources>
+            <ecbankbarcode_setup>
+                <setup>
+                    <module>Ecbank_EcbankBarcode</module>
+                </setup>
+                <connection>
+                    <use>core_setup</use>
+                </connection>
+            </ecbankbarcode_setup>
+            <ecbankbarcode_write>
+                <connection>
+                    <use>core_write</use>
+                </connection>
+            </ecbankbarcode_write>
+            <ecbankbarcode_read>
+                <connection>
+                    <use>core_read</use>
+                </connection>
+            </ecbankbarcode_read>
+        </resources>
+        <blocks>
+            <ecbankbarcode><class>Ecbank_EcbankBarcode_Block</class></ecbankbarcode>
+        </blocks>
+		
+        <events>
+            <sales_order_save_before>
+                <observers>
+                    <payment_sales_order_save_before>
+                        <class>payment/observer</class>
+                        <method>salesOrderBeforeSave</method>
+                    </payment_sales_order_save_before>
+                </observers>
+            </sales_order_save_before>
+        </events>		
+		
+    </global>
+    <frontend>
+        <secure_url>
+            <ecbankbarcode_processing>/ecbankbarcode/processing</ecbankbarcode_processing>
+        </secure_url>
+        <routers>
+            <ecbankbarcode>
+                <use>standard</use>
+                <args>
+                    <module>Ecbank_EcbankBarcode</module>
+                    <frontName>ecbankbarcode</frontName>
+                </args>
+            </ecbankbarcode>
+        </routers>
+        <translate>
+            <modules>
+                <Ecbank_EcbankBarcode>
+                    <files>
+                        <default>Ecbank_EcbankBarcode.csv</default>
+                    </files>
+                </Ecbank_EcbankBarcode>
+            </modules>
+        </translate>	
+        <layout>
+            <updates>
+                <ecbankbarcode>
+                    <file>ecbankbarcode.xml</file>
+                </ecbankbarcode>
+            </updates>
+        </layout>
+    </frontend>	
+	<default>
+        <payment>        
+            <ecbankbarcode_barcode>
+                <active>0</active>
+                <model>ecbankbarcode/barcode</model>
+                <order_status>1</order_status>
+                <title>超商條碼繳費(Ecbank)</title>
+                <allowspecific>0</allowspecific>
+                <use_store_currency>0</use_store_currency>
+                <request_type>authorize</request_type>
+				<transaction_mode>test</transaction_mode>
+				<fix_contact>1</fix_contact>
+				<hide_contact>0</hide_contact>
+                <enable_online_operations>0</enable_online_operations>
+            </ecbankbarcode_barcode>
+        </payment>
+    </default> 
+</config>

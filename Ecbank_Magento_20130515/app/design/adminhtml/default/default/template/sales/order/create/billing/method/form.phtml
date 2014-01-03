@@ -1,0 +1,81 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magentocommerce.com for more information.
+ *
+ * @category    design
+ * @package     default_default
+ * @copyright   Copyright (c) 2011 Magento Inc. (http://www.magentocommerce.com)
+ * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+?>
+<?php if($this->hasMethods()): ?>
+<div id="order-billing_method_form">
+    <dl class="payment-methods">
+    <?php
+        $_methods       = $this->getMethods();
+        $_methodsCount  = count($_methods);
+        $_counter = 0;
+    ?>
+    <?php foreach ($_methods as $_method): $_code = $_method->getCode(); $_counter++; ?>
+        <dt>
+        <?php if ($_methodsCount > 1): ?>
+            <input id="p_method_<?php echo $_code ?>" value="<?php echo $_code ?>" type="radio" name="payment[method]" title="<?php echo $this->htmlEscape($_method->getTitle()) ?>" onclick="payment.switchMethod('<?php echo $_code ?>')"<?php if($this->getSelectedMethodCode()==$_code): ?> checked="checked"<?php endif; ?> <?php if ($_counter == $_methodsCount) : ?>class="validate-one-required-by-name"<?php endif;?>/>
+        <?php else :?>
+            <span class="no-display"><input id="p_method_<?php echo $_code ?>" value="<?php echo $_code ?>" type="radio" name="payment[method]" checked="checked" /></span>
+        <?php endif;?>
+            <label for="p_method_<?php echo $_code ?>"><?php echo $_method->getTitle() ?></label>
+        </dt>
+        <dd>
+            <?php echo $this->getChildHtml('payment.method.'.$_code) ?>
+        </dd>
+    <?php endforeach; ?>
+    <input id="p_method_ecbankbarcode_barcode" value="ecbankbarcode_barcode" type="radio" name="payment[method]" title="超商條碼繳費(Ecbank)" onclick="payment.switchMethod('ecbankbarcode_barcode')"><?php echo " 超商條碼繳費(Ecbank_barcode)"?><dt></dt>
+	
+	<input id="p_method_ecbankwebatm_cc" value="ecbankwebatm_cc" type="radio" name="payment[method]" title="線上網路ATM繳費(Ecbank)" onclick="payment.switchMethod('ecbankwebatm_cc')"><?php echo " 線上網路ATM繳費(Ecbank_webATM)"?><dt></dt>
+	
+	<input id="p_method_gwecpay_ecpay" value="gwecpay_ecpay" type="radio" name="payment[method]" title="線上信用卡繳費(Ecpay)" onclick="payment.switchMethod('gwecpay_ecpay')"><?php echo " 線上信用卡繳費(Ecpay)"?><dt></dt>
+	
+	<input id="p_method_ecbankvacc_vacc" value="ecbankvacc_vacc" type="radio" name="payment[method]" title="銀行虛擬帳戶繳費(Ecbank)" onclick="payment.switchMethod('ecbankvacc_vacc')"><?php echo " 銀行虛擬帳戶繳費(Ecbank)"?><dt></dt>
+	
+	<input id="p_method_ecbankibon_ibon" value="ecbankibon_ibon" type="radio" name="payment[method]" title="7-11 Ibon平台繳費(Ecbank)" onclick="payment.switchMethod('ecbankibon_ibon')"><?php echo " 7-11 Ibon平台繳費(Ecbank)"?><dt></dt>
+	
+	<input id="p_method_ecbankcvs_cvs" value="ecbankcvs_cvs" type="radio" name="payment[method]" title="超商代碼繳費(Ecbank)" onclick="payment.switchMethod('ecbankcvs_cvs')"><?php echo " 超商代碼繳費(Ecbank)"?><dt></dt>
+	
+	<input id="p_method_ecbankpaypal_paypal" value="ecbankpaypal_paypal" type="radio" name="payment[method]" title="PayPal繳費(Ecbank)" onclick="payment.switchMethod('ecbankpaypal_paypal')"><?php echo " PayPal繳費(Ecbank)"?><dt></dt>
+	
+	<input id="p_method_ecbankalipay_alipay" value="ecbankalipay_alipay" type="radio" name="payment[method]" title="綠界支付寶繳費(Ecbank)" onclick="payment.switchMethod('ecbankalipay_alipay')"><?php echo " 銀行虛擬帳戶繳費(Ecbank)"?><dt></dt>
+	
+	<input id="p_method_ecbanktenpay_tenpay" value="ecbanktenpay_tenpay" type="radio" name="payment[method]" title="綠界財付通繳費(Ecbank)" onclick="payment.switchMethod('ecbanktenpay_tenpay')"><?php echo " 銀行虛擬帳戶繳費(Ecbank)"?><dt></dt>
+	
+	<input id="p_method_gwecpay3_ecpay3" value="gwecpay3_ecpay3" type="radio" name="payment[method]" title="線上分3期信用卡繳費(ecpay3)" onclick="payment.switchMethod('gwecpay3_ecpay3')"><?php echo " 線上分3期信用卡繳費(ecpay3)"?><dt></dt>
+	
+	<input id="p_method_gwecpay6_ecpay6" value="gwecpay6_ecpay6" type="radio" name="payment[method]" title="線上分6期信用卡繳費(ecpay6)" onclick="payment.switchMethod('gwecpay6_ecpay6')"><?php echo " 線上分6期信用卡繳費(ecpay6)"?><dt></dt>
+	
+	<input id="p_method_gwecpay12_ecpay12" value="gwecpay12_ecpay12" type="radio" name="payment[method]" title="線上分12期信用卡繳費(ecpay12)" onclick="payment.switchMethod('gwecpay12_ecpay12')"><?php echo " 線上分12期信用卡繳費(ecpay12)"?><dt></dt>
+	
+	<input id="p_method_gwallpay_allpay" value="gwallpay_allpay" type="radio" name="payment[method]" title="歐付寶線上信用卡繳費(allpay)" onclick="payment.switchMethod('gwallpay_allpay')"><?php echo " 歐付寶線上信用卡繳費(allpay)"?><dt></dt>
+	
+	<input id="p_method_gwallpayen_allpayen" value="gwallpayen_allpayen" type="radio" name="payment[method]" title="Allpay Online Credit Card Payment(allpayen)" onclick="payment.switchMethod('gwallpayen_allpayen')"><?php echo " Allpay Online Credit Card Payment(allpayen)"?><dt></dt>	
+	
+    </dl>
+</div>
+<script type="text/javascript">order.setPaymentMethod('<?php echo $this->getSelectedMethodCode() ?>')</script>
+<?php else: ?>
+    <?php echo Mage::helper('sales')->__('please add products!') ?>
+<?php endif; ?>

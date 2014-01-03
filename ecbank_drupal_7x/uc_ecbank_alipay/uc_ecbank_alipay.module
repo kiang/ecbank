@@ -1,0 +1,305 @@
+<?php
+
+/**
+ * @file
+ * Integrates ecbank_alipay's redirected payment service.
+ */
+
+
+/**
+ * Implementation of hook_menu().
+ */
+function uc_ecbank_alipay_menu() {
+  $items = array();
+
+  $items['cart/ecbank_alipay/complete'] = array(
+    'title' => 'Order complete',
+    'page callback' => 'uc_ecbank_alipay_complete',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'uc_ecbank_alipay.pages.inc',
+  );
+  $items['cart/ecbank_alipay/finalize'] = array(
+    'title' => 'Order complete',
+    'page callback' => 'uc_ecbank_alipay_finalize',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'uc_ecbank_alipay.pages.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_init().
+ */
+function uc_ecbank_alipay_init() {
+  global $conf;
+  $conf['i18n_variables'][] = 'uc_ecbank_alipay_method_title';
+  $conf['i18n_variables'][] = 'uc_ecbank_alipay_checkout_button';
+}
+
+/**
+ * Implementation of hook_ucga_display().
+ */
+function uc_ecbank_alipay_ucga_display() {
+  // Tell UC Google Analytics to display the e-commerce JS on the custom
+  // order completion page for this module.
+  if (arg(0) == 'cart' && arg(1) == 'ecbank_alipay' && arg(2) == 'complete') {
+    return TRUE;
+  }
+}
+
+/**
+ * Implementation of hook_payment_method().
+ *
+ * @see uc_payment_method_ecbank_alipay()
+ */
+function uc_ecbank_alipay_uc_payment_method() {
+  $path = base_path() . drupal_get_path('module', 'uc_ecbank_alipay');
+  $title = variable_get('uc_ecbank_alipay_method_title', t('綠界 ECBank alipay'));
+  $title .= '<br /><img src="'. $path .'/logo.gif" style="position: relative; left: 2.5em;">';
+
+  $methods['ecbank_alipay'] = array(
+    'name' => t('[ECBank] alipay'),
+    'title' => $title,
+    'review' => variable_get('uc_ecbank_alipay_check', FALSE) ? t('alipay') : t('alipay'),
+    'desc' => t('Redirect to ecbank_alipay to pay by credit card.'),
+    'callback' => 'uc_payment_method_ecbank_alipay',
+	'redirect' => 'uc_ecbank_alipay_form',
+    'weight' => 3,
+    'checkout' => TRUE,
+    'no_gateway' => TRUE,
+  );
+
+  return $methods;
+}
+
+
+/**
+ * Add ecbank_alipay settings to the payment method settings form.
+ *
+ * @see uc_ecbank_alipay_payment_method()
+ */
+function uc_payment_method_ecbank_alipay($op, &$order, $form = NULL, &$form_state = NULL) {
+
+
+  switch ($op) {
+    case 'cart-details':
+	  $build = array();
+      if (variable_get('uc_ecbank_alipay_check', FALSE)) {
+        if ($_SESSION['pay_method'] == 'CK') {
+          $sel = 'CK';
+        }
+        else {
+          $sel = 'CC';
+        }
+        unset($_SESSION['pay_method']);
+		$build=array();
+        $build = array(
+          '#type' => 'select',
+          '#title' => t('Select your payment type:'),
+          '#name' => 'pay_method',
+          '#id' => 'edit-pay-method',
+          '#attributes' => array('class' => array('form-select')),
+          '#default_value' => $sel,
+          '#options' => array(
+            'CC' => t('alipay'),
+            'CK' => t('Online check'),
+          ),
+        );
+      }
+	  
+      return $build;
+
+    case 'cart-process':
+	
+       if (isset($form_state['values']['panes']['payment']['details']['pay_method'])) {
+        $_SESSION['pay_method'] = $form_state['values']['panes']['payment']['details']['pay_method'];
+      }
+      return;
+	  
+    case 'cart-review':    
+      
+    //ecbank_alipay start ----------------------------    
+    $subtotal = uc_currency_format($order->order_total, FALSE, FALSE, '.');
+  
+    if($subtotal <= 9) {			
+				  drupal_set_message(t('財富通, 最低付款金額為 10 元.'), 'error');
+				  drupal_goto('cart/checkout');
+		      exit;
+	} 
+	if($subtotal > 2000000) {
+	  	    drupal_set_message(t('財富通, 最高付款金額不可高於2百萬元.'), 'error');
+				  drupal_goto('cart/checkout');
+		      exit;
+	} 
+	return;
+	 
+    case 'settings':
+      $form['uc_ecbank_alipay_sid'] = array(
+        '#type' => 'textfield',
+        '#title' => t('綠界 ECBank 商店代號(必填)'),
+        '#description' => t('請輸入您的 ECBank 商店代號。'),
+        '#default_value' => variable_get('uc_ecbank_alipay_sid', ''),
+        '#size' => 16,
+      );
+      $form['uc_ecbank_alipay_secret_word'] = array(
+        '#type' => 'textfield',
+        '#title' => t('綠界 ECBank 交易加密私鑰(必填)'),
+        '#description' => t('請輸入您的 ECBank 交易加密私鑰。'),
+        '#default_value' => variable_get('uc_ecbank_alipay_secret_word', 'tango'),
+        '#size' => 16,
+      );
+      $form['uc_ecbank_alipay_demo'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('啟用Domo模示，讓您處理假訂單測試目的。'),
+        '#default_value' => variable_get('uc_ecbank_alipay_demo', TRUE),
+      );
+      $form['uc_ecbank_alipay_language'] = array(
+        '#type' => 'select',
+        '#title' => t('語言偏好'),
+        '#description' => t(''),
+        '#options' => array(
+          'en' => t('English'),
+          'sp' => t('Spanish'),
+          'tw' => t('ChineseCHT'),
+        ),
+        '#default_value' => variable_get('uc_ecbank_alipay_language', 'tw'),
+      );
+      $form['uc_ecbank_alipay_method_title'] = array(
+        '#type' => 'textfield',
+        '#title' => t('付款方式名稱'),
+        '#default_value' => variable_get('uc_ecbank_alipay_method_title', t('綠界 ECBank alipay')),
+      );
+      $form['uc_ecbank_alipay_checkout_button'] = array(
+        '#type' => 'textfield',
+        '#title' => t('設定付款按鈕文字'),
+        '#description' => t(''),
+        '#default_value' => variable_get('uc_ecbank_alipay_checkout_button', t('Submit Order')),
+      );
+      $form['uc_ecbank_alipay_checkout_type'] = array(
+        '#type' => 'select',
+        '#title' => t('結帳類型'),
+        '#description' => t('單頁結帳只適用於商店出售無形產品使用信用卡付款單。'),
+        '#options' => array(
+          'multi' => t('Multi-page checkout'),
+          'single' => t('Single page checkout'),
+        ),
+        '#default_value' => variable_get('uc_ecbank_alipay_checkout_type', 'multi'),
+      );
+      return $form;
+  }
+}
+
+/**
+ * Form to build the submission to ecbank_alipay.
+ */
+//$op, &$order, $form = NULL, &$form_state = NULL 
+function uc_ecbank_alipay_form($form, &$form_state, $order) {
+  $country = uc_get_country_data(array('country_id' => $order->billing_country)); 
+  if ($country === FALSE) {
+    $country = array(0 => array('country_iso_code_3' => 'USA'));
+  }  
+  $data = array(
+    'mer_id' => variable_get('uc_ecbank_alipay_sid', ''),		
+    'payment_type' => 'alipay',		
+   // 'setbank' => 'ESUN',						
+    'od_sob' => $order->order_id,
+	//'amt' => uc_currency_format($order->order_total, FALSE, FALSE, '.'),
+    'amt' => $order->order_total,
+    'return_url' => url('cart/ecbank_alipay/complete/'. uc_cart_get_id(), array('absolute' => TRUE)),
+	'ok_url' => url('cart/ecbank_alipay/complete/'. uc_cart_get_id(), array('absolute' => TRUE)),
+	
+    //'demo' => variable_get('uc_ecbank_alipay_demo', TRUE) ? 'Y' : 'N',
+    //'lang' => variable_get('uc_ecbank_alipay_language', 'en'),
+    //'merchant_order_id' => $order->order_id,
+    //'pay_method' => isset($_SESSION['pay_method']) ? $_SESSION['pay_method'] : 'CC',
+    //'card_holder_name' => substr($order->billing_first_name .' '. $order->billing_last_name, 0, 128),
+    'street_address' => substr($order->billing_street1, 0, 64),
+    'street_address2' => substr($order->billing_street2, 0, 64),
+    'city' => substr($order->billing_city, 0, 64),
+    'state' => uc_get_zone_code($order->billing_zone),
+    'zip' => substr($order->billing_postal_code, 0, 16),
+    'country' => $country[0]['country_iso_code_3'],
+    'email' => substr($order->primary_email, 0, 64),
+    'phone' => substr($order->billing_phone, 0, 16),
+    'id_type' => 1,
+  );
+
+  $type = 'upload_goods';
+  $goods_href = 'http://';
+  $ecbank_gateway = 'https://ecbank.com.tw/web_service/alipay_goods_upload.php';
+  $enc_key=variable_get('uc_ecbank_alipay_secret_word','');
+  $mer_id = variable_get('uc_ecbank_alipay_sid', '');
+  $i = 0;  
+  foreach ($order->products as $product) {
+    $i++;
+   // $data['c_prod_'. $i] = $product->model .','. $product->qty;
+   // $data['c_name_'. $i] = $product->title;
+    $data['goods_name[]'] = $product->vid;
+	$data['goods_amount[]'] = $product->qty;
+    $data['c_description_'. $i] = '';
+    $data['c_price_'. $i] = uc_currency_format($product->price, FALSE, FALSE, '.');
+	
+	/*$sent=array(
+		"aaa"=>"123",
+		"bbbb"=>"456"
+	);
+	$post_data=http_build_query($sent);*/
+	$post_str='enc_key='.$enc_key.
+                          '&mer_id='.$mer_id.
+                          '&type='.$type.
+                          '&goods_id='.$product->vid.
+                          '&goods_title='.$product->qty.
+                          '&goods_price='.intval($data['c_price_'. $i]).
+                          '&goods_href='.urlencode($goods_href);
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL,$ecbank_gateway);
+                curl_setopt($ch, CURLOPT_VERBOSE, 1);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+                curl_setopt($ch, CURLOPT_POST, 1);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
+                curl_setopt($ch,CURLOPT_POSTFIELDS,$post_str);
+                $strAuth = curl_exec($ch);
+                
+    
+
+	}
+ 
+  curl_close($ch);	
+
+  $form['#action'] = _uc_ecbank_alipay_post_url(variable_get('uc_ecbank_alipay_checkout_type', 'multi'));
+
+  foreach ($data as $name => $value) {
+    if (is_array($value)) {
+            foreach ($value as $v) {
+                   $form[$name] = array('#type' => 'hidden', '#value' => $v);
+            }
+    }else{
+            $form[$name] = array('#type' => 'hidden', '#value' => $value);
+	}
+	
+  }
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => variable_get('uc_ecbank_alipay_checkout_button', t('Submit Order')),
+  );
+
+  return $form;
+}
+
+function _uc_ecbank_alipay_post_url($type) {
+  switch ($type) {
+    case 'single':
+      return 'https://ecbank.com.tw/gateway.php';
+    case 'multi':
+    default:
+      return 'https://ecbank.com.tw/gateway.php';
+  }
+}
+
+

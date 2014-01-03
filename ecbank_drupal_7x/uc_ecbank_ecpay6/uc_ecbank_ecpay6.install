@@ -1,0 +1,18 @@
+<?php
+// $Id: uc_ecbank_ecpay6.install,v 1.1.2.3 2010/05/20 14:37:18 islandusurper Exp $
+
+/**
+ * @file
+ * Install file for uc_ecbank_ecpay6.module.
+ */
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function uc_ecbank_ecpay6_uninstall() {
+  db_delete('variable')
+    ->condition('name', 'uc_ecbank_ecpay6_%', 'LIKE')
+    ->execute();
+}
+
+

@@ -1,0 +1,300 @@
+<?php
+
+/**
+ * @file Provides the check/money order, ecbank_ibon, and "other" payment methods.
+ */
+
+/*******************************************************************************
+ * Hook Functions (Drupal)
+ ******************************************************************************/
+
+function uc_ecbank_ibon_menu() {
+  $items = array();
+
+  $items['cart/ecbank_ibon/complete'] = array(
+    'title' => 'Order complete',
+    'page callback' => 'uc_ecbank_ibon_complete',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'uc_ecbank_ibon.pages.inc',
+  );
+  $items['cart/ecbank_ibon/finalize'] = array(
+    'title' => 'Order complete',
+    'page callback' => 'uc_ecbank_ibon_finalize',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'uc_ecbank_ibon.pages.inc',
+  );
+
+  return $items;
+}
+
+
+/**
+ * Implementation of hook_init().
+ */
+function uc_ecbank_ibon_init() {
+  global $conf;
+  $conf['i18n_variables'][] = 'uc_ecbank_ibon_method_title';
+  $conf['i18n_variables'][] = 'uc_ecbank_ibon_checkout_button';
+}
+
+/**
+ * Implementation of hook_payment_method().
+ */
+
+function uc_ecbank_ibon_txt($payno,$amt,$od_sob) {
+	  	   $rstr = '<table width=100% border=1 align=center cellpadding=3 cellspacing=1>
+                   <tr>
+                     <td align=center bgcolor=#FFFF99>付款方式</td>
+                     <td width=235 bgcolor=#FFFF99>便利超商代碼繳費</td>
+                   </tr><tr>
+                   </tr><tr>
+                     <td align=center>超商繳費代碼</td><td>'.$payno.'</td>
+                   </tr><tr>
+                     <td align=center>繳費金額</td><td>'.intval($amt).'元</td>
+                   </tr><tr>
+                     <td align=center>訂單編號</td><td>'.$od_sob.'</td>
+                   </tr>
+                   <tr>
+                     <td colspan=2 align=center><a href=http://www.ecbank.com.tw/expenses-ibon.htm target=_blank>統一超商 ibon 門市操作步驟</a></td>
+                   </tr>
+                   <tr>
+                     <td colspan=2>請記下上列超商繳費代碼,至最近之統一超商便利商店,操作代碼繳費機台, <br>
+                                   於列印出有條碼之繳款單後,至櫃台支付,便可完成繳費,繳費之收據請留存以供 <br>
+                                   備核,繳費之後才算完成購物流程</td>
+                   </tr>
+                   <tr>
+                     <td colspan=2 align=center><br>
+                       本線上金流機制採用&lt; <a href=http://www.ecbank.com.tw target=_blank>綠界科技 ECBank 線上支付平台</a> &gt 請安心使用
+	  			            <hr>
+	  			          <strong>要點選下方的"'.variable_get('uc_ecbank_ibon_checkout_button', t('Submit Order')).'"鈕才算完成訂單程序喔</strong>
+	  			     </td></tr></table>';		
+	  			return $rstr;
+}
+
+function uc_ecbank_ibon_uc_payment_method() {
+  $path = base_path() . drupal_get_path('module', 'uc_ecbank_ibon');
+  $title = variable_get('uc_ecbank_ibon_method_title', t('綠界 ECBank 超商代碼支付[統一超商(ibon)]'));
+  $title .= '<br /><img src="' . $path .'/logo.gif" style="position: relative; left: 2.5em;">';  
+ 
+  $methods['ecbank_ibon'] = array(
+    'name' => t('[ECBank] Ibon'),
+    'title' => $title,
+    'review' => variable_get('uc_ecbank_ibon_check', FALSE) ? t('ibon') : t('ibon'),
+    'desc' => t('Redirect to ecbank_ibon to pay by credit card.'),
+    'callback' => 'uc_payment_method_ecbank_ibon',
+    'weight' => 3,
+    'checkout' => TRUE,
+    'no_gateway' => TRUE,
+  );
+  return $methods;
+}
+
+/**
+ * Handle the Cash on Delivery payment method.
+ */
+function uc_payment_method_ecbank_ibon($op, &$order, $form = NULL, &$form_state = NULL) {
+  switch ($op) {
+    case 'cart-details':
+	
+      if (variable_get('uc_ecbank_ibon_check', FALSE)) {
+        if ($_SESSION['pay_method'] == 'CK') {
+          $sel = 'CK';
+        }
+        else {
+          $sel = 'CC';
+        }
+        unset($_SESSION['pay_method']);
+
+        $build = array(
+          '#type' => 'select',
+          '#title' => t('Select your payment type:'),
+          '#name' => 'pay_method',
+          '#id' => 'edit-pay-method',
+          '#attributes' => array('class' => array('form-select')),
+          '#default_value' => $sel,
+          '#options' => array(
+            'CC' => t('ibon'),
+            'CK' => t('ibon'),
+          ),
+        );
+      }
+	  
+      return $build;
+
+    case 'cart-process':
+      if (isset($form_state['values']['panes']['payment']['details']['pay_method'])) {
+        $_SESSION['pay_method'] = $form_state['values']['panes']['payment']['details']['pay_method'];
+      }
+
+    case 'cart-review':    
+      
+    //ecbank_ibon start ----------------------------    
+    $subtotal = uc_currency_format($order->order_total, FALSE, FALSE, '.');
+  
+    if($subtotal <= 29) {			
+				  drupal_set_message(t('綠界 ECBank 超商代碼繳費, 最低付款金額為 30 元.'), 'error');
+				  drupal_goto('cart/checkout');
+		      exit;
+	} 
+	if($subtotal > 20000) {
+	  	    drupal_set_message(t('綠界 ECBank 超商代碼繳費, 最高付款金額為不可高於2萬元.'), 'error');
+				  drupal_goto('cart/checkout');
+		      exit;
+	} 
+  
+    if($_SESSION['ecbank_ibon_payment'] != "".$_SESSION['cart_order']."_".$subtotal."" || $_SESSION['ecbank_ibon_payno'] == "") {     
+     $param = array (
+     // ecbank主機 
+     'ecbank_gateway' =>  'https://ecbank.com.tw/gateway.php',
+     'mer_id' => variable_get('uc_ecbank_ibon_sid', ''),		//商店代號
+     'payment_type' => 'ibon',		//付款方式   
+     // 商店設定在ECBank管理後台的交易加密私鑰
+     'enc_key' => variable_get('uc_ecbank_ibon_secret_word', ''),
+     // 商品說明及備註。(會出現在超商繳費平台螢幕上)  //date('Ymdhis'),
+     'od_sob' => $_SESSION['cart_order'],  
+     'prd_desc' => 'drupal',
+     //允許繳費有效天數
+     'cur_type' => 'TWD',
+     // 繳費金額
+     'amt' => round($subtotal),
+     // 付款完成通知網址
+     'cancel_url' => url('cart/ecbank_ibon/complete/'. uc_cart_get_id(), array('absolute' => TRUE)),
+     'return_url' => url('cart/ecbank_ibon/complete/'. uc_cart_get_id(), array('absolute' => TRUE))
+     );
+     
+     $strAuth = '';
+     $nvpStr = 'payment_type='.$param['payment_type'].
+               '&od_sob='.$param['od_sob'].
+               '&mer_id='.$param['mer_id'].
+               '&enc_key='.$param['enc_key'].
+               '&amt='.intval($param['amt']).
+               '&prd_desc='.$param['prd_desc']. 
+               '&ok_url='.$param['return_url'];
+      $ch = curl_init();
+      curl_setopt($ch, CURLOPT_URL,$param['ecbank_gateway']);
+      curl_setopt($ch, CURLOPT_VERBOSE, 1);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
+      curl_setopt($ch, CURLOPT_POST, 1);
+      curl_setopt($ch, CURLOPT_POSTFIELDS,$nvpStr);
+      $strAuth = curl_exec($ch);
+   
+      if (curl_errno($ch)) $strAuth = false;
+      curl_close($ch);
+	  	
+      if($strAuth) {
+          parse_str($strAuth, $res);
+          if(!isset($res['error']) || $res['error'] != '0') {
+   	              $text='取號錯誤:錯誤代碼 = ('.$res['error'].'), 請重新整理本頁取號!';
+          } else {	
+                  $_SESSION['ecbank_ibon_payment'] = "".$_SESSION['cart_order']."_".$subtotal."";                  
+                  $_SESSION['ecbank_ibon_od_sob'] = $res['od_sob'];                
+                  $_SESSION['ecbank_ibon_payno'] = $res['payno'];
+				  $_SESSION['ecbank_ibon_amt'] = $res['amt'];
+    
+                  $text = uc_ecbank_ibon_txt($_SESSION['ecbank_ibon_payno'],$_SESSION['ecbank_ibon_amt'],$_SESSION['ecbank_ibon_od_sob']);
+                
+           }
+     }else{
+       	$text='取號錯誤:錯誤代碼 = ('.$res['error'].'), 請重新整理本頁取號!';
+     }
+  }else{
+    $text = uc_ecbank_ibon_txt($_SESSION['ecbank_ibon_payno'],$_SESSION['ecbank_ibon_amt'],$_SESSION['ecbank_ibon_od_sob']); 
+ } 
+  //ecbank_ibon end ----------------------------    
+      $review[] = array('title' => t('ibon'), 'data' => $text);
+         
+      return $review;
+
+    case 'order-view':
+   /* case 'customer-view':
+      return $output;*/
+
+   /* case 'order-details':
+      return $details;*/
+
+    case 'edit-process':      
+      return;
+
+    case 'order-load':
+      break;  
+  /*  case 'order-submit':
+      if ($order->payment_method == 'ecbank_ibon' &&
+          ($max = variable_get('uc_ecbank_ibon_max_order', 0)) > 0 &&
+          is_numeric($max) &&
+          $order->order_total > $max) {
+          $result[] = array(
+            'pass' => FALSE,
+            'message' => t('Your final order total exceeds the maximum for ecbank_ibon payment.  Please go back and select a different method of payment.')
+          );
+          $_SESSION['expanded_panes'][] = 'payment';
+          return $result;
+      }*/
+    /*case 'order-save':
+      // clear cart
+      uc_cart_empty($_SESSION['cart_order']);  
+      
+      break; */
+   /* case 'order-delete':
+      db_query("DELETE FROM {uc_payment_ecbank_ibon} WHERE order_id = %d", $order->order_id);
+      
+      break;*/
+
+    case 'settings':
+      $form['uc_ecbank_ibon_sid'] = array(
+        '#type' => 'textfield',
+        '#title' => t('綠界 ECBank 商店代號(必填)'),
+        '#description' => t('請輸入您的 ECBank 商店代號。'),
+        '#default_value' => variable_get('uc_ecbank_ibon_sid', ''),
+        '#size' => 16,
+      );
+      $form['uc_ecbank_ibon_secret_word'] = array(
+        '#type' => 'textfield',
+        '#title' => t('綠界 ECBank 交易加密私鑰(必填)'),
+        '#description' => t('請輸入您的 ECBank 交易加密私鑰。'),
+        '#default_value' => variable_get('uc_ecbank_ibon_secret_word', 'tango'),
+        '#size' => 16,
+      );
+      $form['uc_ecbank_ibon_demo'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('啟用Domo模示，讓您處理假訂單測試目的。'),
+        '#default_value' => variable_get('uc_ecbank_ibon_demo', TRUE),
+      );
+      $form['uc_ecbank_ibon_language'] = array(
+        '#type' => 'select',
+        '#title' => t('語言偏好'),
+        '#description' => t(''),
+        '#options' => array(
+          'en' => t('English'),
+          'sp' => t('Spanish'),
+          'tw' => t('ChineseCHT')
+        ),
+        '#default_value' => variable_get('uc_ecbank_ibon_language', 'tw')
+      );
+      $form['uc_ecbank_ibon_method_title'] = array(
+        '#type' => 'textfield',
+        '#title' => t('付款方式名稱'),
+        '#default_value' => variable_get('uc_ecbank_ibon_method_title', t('綠界 ECBank 超商代碼支付[統一超商(ibon)]')),
+      );
+      $form['uc_ecbank_ibon_checkout_button'] = array(
+        '#type' => 'textfield',
+        '#title' => t('設定付款按鈕文字'),
+        '#description' => t(''),
+        '#default_value' => variable_get('uc_ecbank_ibon_checkout_button', t('Submit Order')),
+      );
+      $form['uc_ecbank_ibon_checkout_type'] = array(
+        '#type' => 'select',
+        '#title' => t('結帳類型'),
+        '#description' => t('單頁結帳只適用於商店出售無形產品使用信用卡付款單。'),
+        '#options' => array(
+          'multi' => t('Multi-page checkout'),
+          'single' => t('Single page checkout'),
+        ),
+        '#default_value' => variable_get('uc_ecbank_ibon_checkout_type', 'multi'),
+      );
+      return $form;
+  }
+}

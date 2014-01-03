@@ -1,0 +1,109 @@
+﻿<?xml version="1.0"?>
+<!--
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * @category   Ecbank
+ * @package    Ecbank_EcbankWebatm
+ * @copyright  Copyright (c) 2010 Ecbank (http://www.ecbank.com.tw)
+ */
+-->
+<config>
+    <modules>
+        <Gw_Gwallpayen>
+            <version>1.2.6</version>
+        </Gw_Gwallpayen>
+    </modules>
+    <global>
+        <models>
+            <gwallpayen>
+                <class>Gw_Gwallpayen_Model</class>
+            </gwallpayen>
+        </models>
+        <helpers>
+	      <gwallpayen>
+            <class>Gw_Gwallpayen_Helper</class>
+		  </gwallpayen>
+	    </helpers>
+        <resources>
+            <gwallpayen_setup>
+                <setup>
+                    <module>Gw_Gwallpayen</module>
+                </setup>
+                <connection>
+                    <use>core_setup</use>
+                </connection>
+            </gwallpayen_setup>
+            <gwallpayen_write>
+                <connection>
+                    <use>core_write</use>
+                </connection>
+            </gwallpayen_write>
+            <gwallpayen_read>
+                <connection>
+                    <use>core_read</use>
+                </connection>
+            </gwallpayen_read>
+        </resources>
+        <blocks>
+            <gwallpayen><class>Gw_Gwallpayen_Block</class></gwallpayen>
+        </blocks>
+    </global>
+    <frontend>
+        <secure_url>
+            <gwallpayen_processing>/gwallpayen/processing</gwallpayen_processing>
+        </secure_url>
+        <routers>
+            <gwallpayen>
+                <use>standard</use>
+                <args>
+                    <module>Gw_Gwallpayen</module>
+                    <frontName>gwallpayen</frontName>
+                </args>
+            </gwallpayen>
+        </routers>
+        <translate>
+            <modules>
+                <Gw_Gwallpayen>
+                    <files>
+                        <default>Gw_Gwallpayen.csv</default>
+                    </files>
+                </Gw_Gwallpayen>
+            </modules>
+        </translate>
+        <layout>
+            <updates>
+                <gwallpayen>
+                    <file>gwallpayen.xml</file>
+                </gwallpayen>
+            </updates>
+        </layout>
+    </frontend>
+	<default>
+        <payment>        
+            <gwallpayen_allpayen>
+                <active>0</active>
+                <model>gwallpayen/allpayen</model>
+                <order_status>1</order_status>
+                <title>allpay online credit card payment(allpayen)</title>
+                <allowspecific>0</allowspecific>
+                <use_store_currency>0</use_store_currency>
+                <request_type>authorize</request_type>
+				<transaction_mode>test</transaction_mode>
+				<fix_contact>1</fix_contact>
+				<hide_contact>0</hide_contact>
+                <enable_online_operations>0</enable_online_operations>
+            </gwallpayen_allpayen>
+        </payment>
+    </default> 
+</config>

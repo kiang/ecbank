@@ -1,0 +1,103 @@
+﻿<?xml version="1.0"?>
+<!--
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * @category   Phoenix
+ * @package    Ecbank_EcbankVacc
+ * @copyright  Copyright (c) 2010 Phoenix Medien GmbH & Co. KG (http://www.phoenix-medien.de)
+ */
+-->
+<config>
+    <modules>
+        <Ecbank_EcbankVacc>
+            <version>1.2.6</version>
+        </Ecbank_EcbankVacc>
+    </modules>
+    <global>
+        <models>
+            <ecbankvacc>
+                <class>Ecbank_EcbankVacc_Model</class>
+            </ecbankvacc>
+        </models>
+        <helpers>
+	      <ecbankvacc>
+            <class>Ecbank_EcbankVacc_Helper</class>
+		  </ecbankvacc>
+	    </helpers>
+        <resources>
+            <ecbankvacc_setup>
+                <setup>
+                    <module>Ecbank_EcbankVacc</module>
+                </setup>
+                <connection>
+                    <use>core_setup</use>
+                </connection>
+            </ecbankvacc_setup>
+            <ecbankvacc_write>
+                <connection>
+                    <use>core_write</use>
+                </connection>
+            </ecbankvacc_write>
+            <ecbankvacc_read>
+                <connection>
+                    <use>core_read</use>
+                </connection>
+            </ecbankvacc_read>
+        </resources>
+        <blocks>
+            <ecbankvacc><class>Ecbank_EcbankVacc_Block</class></ecbankvacc>
+        </blocks>
+    </global>
+    <frontend>
+        <secure_url>
+            <ecbankvacc_processing>/ecbankvacc/processing</ecbankvacc_processing>
+        </secure_url>
+        <routers>
+            <ecbankvacc>
+                <use>standard</use>
+                <args>
+                    <module>Ecbank_EcbankVacc</module>
+                    <frontName>ecbankvacc</frontName>
+                </args>
+            </ecbankvacc>
+        </routers>
+        <translate>
+            <modules>
+                <Ecbank_EcbankVacc>
+                    <files>
+                        <default>Ecbank_EcbankVacc.csv</default>
+                    </files>
+                </Ecbank_EcbankVacc>
+            </modules>
+        </translate>
+        <layout>
+            <updates>
+                <ecbankvacc>
+                    <file>ecbankvacc.xml</file>
+                </ecbankvacc>
+            </updates>
+        </layout>
+    </frontend>
+	<default>
+        <payment>        
+            <ecbankvacc_vacc>
+                <active>0</active>
+                <model>ecbankvacc/vacc</model>
+                <order_status>1</order_status>
+                <title>銀行虛擬帳戶繳費(Ecbank)</title>
+                <allowspecific>0</allowspecific>
+            </ecbankvacc_vacc>
+        </payment>
+    </default> 
+</config>

@@ -1,0 +1,258 @@
+<?php
+
+/**
+ * @file
+ * Integrates ecbank_ecpay12's redirected payment service.
+ */
+
+
+/**
+ * Implementation of hook_menu().
+ */
+function uc_ecbank_ecpay12_menu() {
+  $items = array();
+
+  $items['cart/ecbank_ecpay12/complete'] = array(
+    'title' => 'Order complete',
+    'page callback' => 'uc_ecbank_ecpay12_complete',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'uc_ecbank_ecpay12.pages.inc',
+  );
+  $items['cart/ecbank_ecpay12/finalize'] = array(
+    'title' => 'Order complete',
+    'page callback' => 'uc_ecbank_ecpay12_finalize',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'uc_ecbank_ecpay12.pages.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_init().
+ */
+function uc_ecbank_ecpay12_init() {
+  global $conf;
+  $conf['i18n_variables'][] = 'uc_ecbank_ecpay12_method_title';
+  $conf['i18n_variables'][] = 'uc_ecbank_ecpay12_checkout_button';
+}
+
+/**
+ * Implementation of hook_ucga_display().
+ */
+function uc_ecbank_ecpay12_ucga_display() {
+  // Tell UC Google Analytics to display the e-commerce JS on the custom
+  // order completion page for this module.
+  if (arg(0) == 'cart' && arg(1) == 'ecbank_ecpay12' && arg(2) == 'finalize') {
+    return TRUE;
+  }
+}
+
+/**
+ * Implementation of hook_payment_method().
+ *
+ * @see uc_payment_method_ecbank_ecpay12()
+ */
+function uc_ecbank_ecpay12_uc_payment_method() {
+  $path = base_path() . drupal_get_path('module', 'uc_ecbank_ecpay12');
+  $title = variable_get('uc_ecbank_ecpay12_method_title', t('綠界 ECBank ecpay12'));
+  $title .= '<br /><img src="'. $path .'/logo.gif" style="position: relative; left: 2.5em;">';
+
+  $methods['ecbank_ecpay12'] = array(
+    'name' => t('[ECBank] ecpay12'),
+    'title' => $title,
+    'review' => variable_get('uc_ecbank_allapy_check', FALSE) ? t('ecpay12') : t('ecpay12'),
+    'desc' => t('Redirect to ecbank_ecpay12 to pay by credit card.'),
+    'callback' => 'uc_payment_method_ecbank_ecpay12',
+	'redirect' => 'uc_ecbank_ecpay12_form',
+    'weight' => 3,
+    'checkout' => TRUE,
+    'no_gateway' => TRUE,
+  );
+
+  return $methods;
+}
+
+
+/**
+ * Add ecbank_ecpay12 settings to the payment method settings form.
+ *
+ * @see uc_ecbank_ecpay12_payment_method()
+ */
+function uc_payment_method_ecbank_ecpay12($op, &$order, $form = NULL, &$form_state = NULL) {
+  switch ($op) {
+    case 'cart-details':
+	  $build = array();
+      if (variable_get('uc_ecbank_ecpay12_check', FALSE)) {
+        if ($_SESSION['pay_method'] == 'CK') {
+          $sel = 'CK';
+        }
+        else {
+          $sel = 'CC';
+        }
+        unset($_SESSION['pay_method']);
+
+        $build = array(
+          '#type' => 'select',
+          '#title' => t('Select your payment type:'),
+          '#name' => 'pay_method',
+          '#id' => 'edit-pay-method',
+          '#attributes' => array('class' => array('form-select')),
+          '#default_value' => $sel,
+          '#options' => array(
+            'CC' => t('ecpay12'),
+            'CK' => t('Online check'),
+          ),
+        );
+      }
+	  
+      return $build;
+
+    case 'cart-process':
+      if (isset($form_state['values']['panes']['payment']['details']['pay_method'])) {
+        $_SESSION['pay_method'] = $form_state['values']['panes']['payment']['details']['pay_method'];
+      }
+      return;
+	  
+    case 'cart-review':    
+      
+    //ecbank_webatm start ----------------------------    
+    $subtotal = uc_currency_format($order->order_total, FALSE, FALSE, '.');
+  
+    if($subtotal <= 9) {			
+				  drupal_set_message(t('網路WebATM, 最低付款金額為 10 元.'), 'error');
+				  drupal_goto('cart/checkout');
+		      exit;
+	} 
+	if($subtotal > 2000000) {
+	  	    drupal_set_message(t('網路WebATM, 最高付款金額不可高於2百萬元.'), 'error');
+				  drupal_goto('cart/checkout');
+		      exit;
+	} 
+	return;
+	 
+    case 'settings':
+      $form['uc_ecbank_ecpay12_sid'] = array(
+        '#type' => 'textfield',
+        '#title' => t('ECPAY 商店代號(必填)'),
+        '#description' => t('請輸入您的 EAPAY 商店代號。'),
+        '#default_value' => variable_get('uc_ecbank_ecpay12_sid', ''),
+        '#size' => 16,
+      );
+      $form['uc_ecbank_ecpay12_secret_word'] = array(
+        '#type' => 'textfield',
+        '#title' => t('綠界 EAPAY 商家檢核碼。(必填)'),
+        '#description' => t('請輸入您的 ECPAY 商家檢核碼。'),
+        '#default_value' => variable_get('uc_ecbank_ecpay12_secret_word', 'tango'),
+        '#size' => 16,
+      );
+      $form['uc_ecbank_ecpay12_demo'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('啟用Domo模示，讓您處理假訂單測試目的。'),
+        '#default_value' => variable_get('uc_ecbank_ecpay12_demo', TRUE),
+      );
+      $form['uc_ecbank_ecpay12_language'] = array(
+        '#type' => 'select',
+        '#title' => t('語言偏好'),
+        '#description' => t(''),
+        '#options' => array(
+          'en' => t('English'),
+          'sp' => t('Spanish'),
+          'tw' => t('ChineseCHT'),
+        ),
+        '#default_value' => variable_get('uc_ecbank_ecpay12_language', 'tw'),
+      );
+      $form['uc_ecbank_ecpay12_method_title'] = array(
+        '#type' => 'textfield',
+        '#title' => t('付款方式名稱'),
+        '#default_value' => variable_get('uc_ecbank_ecpay12_method_title', t('綠界 ECBank ecpay12')),
+      );
+      $form['uc_ecbank_ecpay12_checkout_button'] = array(
+        '#type' => 'textfield',
+        '#title' => t('設定付款按鈕文字'),
+        '#description' => t(''),
+        '#default_value' => variable_get('uc_ecbank_ecpay12_checkout_button', t('Submit Order')),
+      );
+      $form['uc_ecbank_ecpay12_checkout_type'] = array(
+        '#type' => 'select',
+        '#title' => t('結帳類型'),
+        '#description' => t('單頁結帳只適用於商店出售無形產品使用信用卡付款單。'),
+        '#options' => array(
+          'multi' => t('Multi-page checkout'),
+          'single' => t('Single page checkout'),
+        ),
+        '#default_value' => variable_get('uc_ecbank_ecpay12_checkout_type', 'multi'),
+      );
+      return $form;
+  }
+}
+
+/**
+ * Form to build the submission to ecbank_ecpay12.
+ */
+function uc_ecbank_ecpay12_form($form, &$form_state, $order) {
+  $country = uc_get_country_data(array('country_id' => $order->billing_country)); 
+  if ($country === FALSE) {
+    $country = array(0 => array('country_iso_code_3' => 'USA'));
+  }  
+  $data = array(
+    'client' => variable_get('uc_ecbank_ecpay12_sid', ''),		
+    'payment_type' => 'ecpay12',		
+    //'setbank' => 'ESUN',	
+    'act' => 'auth',	
+    'od_sob' => $order->order_id,
+	'stage' => '12',
+	//'amt' => uc_currency_format($order->order_total, FALSE, FALSE, '.'),
+    'amount' => $order->order_total,
+    'roturl' => url('cart/ecbank_ecpay12/complete/'. uc_cart_get_id(), array('absolute' => TRUE)),
+    //'demo' => variable_get('uc_ecbank_webatm_demo', TRUE) ? 'Y' : 'N',
+    //'lang' => variable_get('uc_ecbank_webatm_language', 'en'),
+    'merchant_order_id' => $order->order_id,
+    'pay_method' => isset($_SESSION['pay_method']) ? $_SESSION['pay_method'] : 'CC',
+    //'card_holder_name' => substr($order->billing_first_name .' '. $order->billing_last_name, 0, 128),
+    //'street_address' => substr($order->billing_street1, 0, 64),
+    //'street_address2' => substr($order->billing_street2, 0, 64),
+    //'city' => substr($order->billing_city, 0, 64),
+    //'state' => uc_get_zone_code($order->billing_zone),
+    //'zip' => substr($order->billing_postal_code, 0, 16),
+    //'country' => $country[0]['country_iso_code_3'],
+   // 'email' => substr($order->primary_email, 0, 64),
+    //'phone' => substr($order->billing_phone, 0, 16),
+   // 'id_type' => 1,
+  );
+
+  $i = 0;  
+  foreach ($order->products as $product) {
+    $i++;
+    $data['c_prod_'. $i] = $product->model .','. $product->qty;
+    $data['c_name_'. $i] = $product->title;
+    $data['c_description_'. $i] = '';
+    $data['c_price_'. $i] = uc_currency_format($product->price, FALSE, FALSE, '.');
+  }
+
+  $form['#action'] = _uc_ecbank_ecpay12_post_url(variable_get('uc_ecbank_ecpay12_checkout_type', 'multi'));
+
+  foreach ($data as $name => $value) {
+    $form[$name] = array('#type' => 'hidden', '#value' => $value);
+  }
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => variable_get('uc_ecbank_ecpay12_checkout_button', t('Submit Order')),
+  );
+
+  return $form;
+}
+
+function _uc_ecbank_ecpay12_post_url($type) {
+  switch ($type) {
+    case 'single':
+      return 'https://ecpay.com.tw/form_Sc_to5_fn.php';
+    case 'multi':
+    default:
+      return 'https://ecpay.com.tw/form_Sc_to5_fn.php';
+  }
+}

@@ -1,0 +1,27 @@
+﻿<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * @category   Ecbank * @package    Ecbank_EcbankWebatm * @copyright  Copyright (c) 2010 Ecbank (http://www.ecbank.com.tw)
+ */
+?>
+
+<?php $paymentInfo = $this->_getOrder()->getPayment()->getMethodInstance()->sendParams(); ?>
+<?php 	$returnUrl = Mage::getUrl('customer/account');	if($paymentInfo['error'] != 0){		$def_url.='發生錯誤，請參閱錯誤代碼('.$paymentInfo['error'].')。<br><br>';		$def_url.='<center><a href ='.$returnUrl.'>按此返回訂單列表</a></center></font>';	}else{		$def_url.='<font size=6>繳費資訊:</font><br>';		$def_url.='<br><font size=4>[全家/萊爾富]超商繳費代碼:</font>(<font color=blue size=+2>'.$paymentInfo['payno'].'</font>)<br><br>';		$def_url.='<font size=3><a href=http://www.ecbank.com.tw/expenses-famiport.htm target=_blank>全家 FamiPort 門市操作步驟</a><br>';		$def_url.='<a href=http://www.ecbank.com.tw/expenses-life-et.htm target=_blank>萊爾富Life-ET 門市操作步驟</a><br>';		$def_url.='請記下上列超商繳費代碼，至最近之全家或萊爾富便利商店,操作代碼繳費機台，<br>'; 		$def_url.='於列印出有條碼之繳款單後，至櫃台支付，便可完成繳費,繳費之收據請留存以供<br>'; 		$def_url.='備核,繳費之後才算完成購物流程。';		$def_url.='<br>本線上金流機制採用&lt; <a href=http://www.ecbank.com.tw target=_blank>綠界科技 ECBank 線上支付平台</a> &gt;，於超商繳費單列印' ;		$def_url.='<br>平台可見綠界科技 ECBank 圖示,請安心使用';		$def_url.='<br><br><center><a href ='.$returnUrl.'>按此返回訂單列表</a></center></font>';		$session=Mage::getSingleton('checkout/session');			$session->setPayNumber($paymentInfo['payno']);		$payNumber=$session->getPayNumber();	}	echo $def_url;?>
+
+<script type="text/javascript">
+//<![CDATA[
+    //var paymentform = document.getElementById('ecbankcvs_checkout');
+    //window.onload = paymentform.submit();
+//]]>
+</script>

@@ -1,0 +1,12 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the uc_ecbank_vacc module.
+ */
+
+function uc_ecbank_vacc_uninstall() {
+  db_delete('variable')
+    ->condition('name', 'uc_ecbank_vacc_%', 'LIKE')
+    ->execute();
+}

@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * @category   Ecbank
+ * @package    Ecbank_EcbankTenpay
+ * @copyright  Copyright (c) 2010 Ecbank(http://www.ecbank.com.tw)
+ */
+-->
+<config>
+    <modules>
+        <Ecbank_EcbankTenpay>
+            <version>1.2.6</version>
+        </Ecbank_EcbankTenpay>
+    </modules>
+    <global>
+        <models>
+            <ecbanktenpay>
+                <class>Ecbank_EcbankTenpay_Model</class>
+            </ecbanktenpay>
+        </models>
+        <helpers>
+	      <ecbanktenpay>
+            <class>Ecbank_EcbankTenpay_Helper</class>
+		  </ecbanktenpay>
+	    </helpers>
+        <resources>
+            <ecbanktenpay_setup>
+                <setup>
+                    <module>Ecbank_EcbankTenpay</module>
+                </setup>
+                <connection>
+                    <use>core_setup</use>
+                </connection>
+            </ecbanktenpay_setup>
+            <ecbanktenpay_write>
+                <connection>
+                    <use>core_write</use>
+                </connection>
+            </ecbanktenpay_write>
+            <ecbanktenpay_read>
+                <connection>
+                    <use>core_read</use>
+                </connection>
+            </ecbanktenpay_read>
+        </resources>
+        <blocks>
+            <ecbanktenpay><class>Ecbank_EcbankTenpay_Block</class></ecbanktenpay>
+        </blocks>
+    </global>
+    <frontend>
+        <secure_url>
+            <ecbanktenpay_processing>/ecbanktenpay/processing</ecbanktenpay_processing>
+        </secure_url>
+        <routers>
+            <ecbanktenpay>
+                <use>standard</use>
+                <args>
+                    <module>Ecbank_EcbankTenpay</module>
+                    <frontName>ecbanktenpay</frontName>
+                </args>
+            </ecbanktenpay>
+        </routers>
+        <layout>
+            <updates>
+                <ecbanktenpay>
+                    <file>ecbanktenpay.xml</file>
+                </ecbanktenpay>
+            </updates>
+        </layout>
+    </frontend>
+	<default>
+        <payment>        
+            <ecbanktenpay_cc>
+                <active>0</active>
+                <model>ecbanktenpay/cc</model>
+                <order_status>1</order_status>
+                <title>綠界財付通繳費(Ecbank)</title>
+                <allowspecific>0</allowspecific>
+            </ecbanktenpay_cc>
+        </payment>
+    </default> 
+</config>

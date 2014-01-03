@@ -1,0 +1,95 @@
+﻿<?xml version="1.0"?>
+<!--
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * @category   Ecbank
+ * @package    Ecbank_EcbankWebatm
+ * @copyright  Copyright (c) 2010 Ecbank(http://www.ecbank.com.tw)
+ */
+-->
+<config>
+    <modules>
+        <Ecbank_EcbankWebatm>
+            <version>1.2.6</version>
+        </Ecbank_EcbankWebatm>
+    </modules>
+    <global>
+        <models>
+            <ecbankwebatm>
+                <class>Ecbank_EcbankWebatm_Model</class>
+            </ecbankwebatm>
+        </models>
+        <helpers>
+	      <ecbankwebatm>
+            <class>Ecbank_EcbankWebatm_Helper</class>
+		  </ecbankwebatm>
+	    </helpers>
+        <resources>
+            <ecbankwebatm_setup>
+                <setup>
+                    <module>Ecbank_EcbankWebatm</module>
+                </setup>
+                <connection>
+                    <use>core_setup</use>
+                </connection>
+            </ecbankwebatm_setup>
+            <ecbankwebatm_write>
+                <connection>
+                    <use>core_write</use>
+                </connection>
+            </ecbankwebatm_write>
+            <ecbankwebatm_read>
+                <connection>
+                    <use>core_read</use>
+                </connection>
+            </ecbankwebatm_read>
+        </resources>
+        <blocks>
+            <ecbankwebatm><class>Ecbank_EcbankWebatm_Block</class></ecbankwebatm>
+        </blocks>
+    </global>
+    <frontend>
+        <secure_url>
+            <ecbankwebatm_processing>/ecbankwebatm/processing</ecbankwebatm_processing>
+        </secure_url>
+        <routers>
+            <ecbankwebatm>
+                <use>standard</use>
+                <args>
+                    <module>Ecbank_EcbankWebatm</module>
+                    <frontName>ecbankwebatm</frontName>
+                </args>
+            </ecbankwebatm>
+        </routers>
+        <layout>
+            <updates>
+                <ecbankwebatm>
+                    <file>ecbankwebatm.xml</file>
+                </ecbankwebatm>
+            </updates>
+        </layout>
+    </frontend>
+	<default>
+        <payment>        
+            <ecbankwebatm_cc>
+                <active>0</active>
+                <model>ecbankwebatm/cc</model>
+                <order_status>1</order_status>
+                <title>線上網路ATM繳費(Ecbank)</title>
+				<setbank>YUANTA</setbank>
+                <allowspecific>0</allowspecific>
+            </ecbankwebatm_cc>
+        </payment>
+    </default> 
+</config>

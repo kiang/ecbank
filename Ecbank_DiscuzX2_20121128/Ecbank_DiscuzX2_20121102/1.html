@@ -1,0 +1,75 @@
+﻿<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<div>
+	<h1>綠界科技線上金流模組安裝教學</h1>
+	<h1>Step 1 - 插件安裝說明</h1>
+	<p><font size="" color="red">此模組包含的付費模式有：<br>
+	1. PayPal<br>
+	2. WebATM<br>
+	3. 虛擬帳號<br>
+	4. 超商代碼繳費(萊爾富 & 全家 & OK 便利商店三合一代碼繳費)<br>
+	5. 7-Eleven iBon超商代碼)<br>
+	6. 超商條碼繳費<br>
+	7. ECPAY 線上刷卡<br>
+	8. 歐付寶(AllPay)線上刷卡<br>
+	9. 銀聯卡(UnionPay)<br>
+	10. 支付寶(Alipay)<br><br>
+	整合綠界B2C電子發票平台, 可於金流完成後自動開立電子發票</font></p>
+	<p>請先安裝好Discuz論壇，<A HREF="http://www.discuz.net/thread-2141484-1-1.html" target="_blank">安裝教學</A></p>
+	<p><font size="" color="red">注意：以下每個步驟皆是必需執行的，請不要忽略某一步驟，以免無法使用，謝謝。</font></p>
+	<h3>1 解壓檔案後，此時您可看見3個資料夾</h3>
+	<div class="l"><img src="1/1.png" width="230" height="72" border="0" alt=""></div>
+	<br>
+	<h3>2 將這3個資料夾利用ftp上傳至您所安裝的discuz主機上，並且覆蓋</h3>
+	<br>
+	<h3>3 使用管理者帳號登入至管理中心，選擇『插件』後，再選擇『安裝新插件』</h3>
+	<div class="l"><img src="1/2.png" width="640" height="347" border="0" alt=""></div>
+	<br>
+	<h3>4 按下右邊的安裝，成功後即會出現如下圖所示</h3>
+	<div class="l"><img src="1/3.png" width="1076" height="171" border="0" alt=""></div><br>
+	<div class="l"><img src="1/4.png" width="269" height="295" border="0" alt=""></div>
+	<br>
+	<h3>5 啟用綠界金流插件，按下右邊『啟用』，啟用後，會如下圖示，左側選單多一個綠界金流的插件</h3>
+	<div class="l"><img src="1/5.png" width="658" height="259" border="0" alt=""></div>
+	<br>
+	<h3>6 設定綠界金流的資料，依照右側說明，輸入您在綠界ECBank所申請的商店代號、加密私鑰，並填入您所要充值的收款方式後，按下提交</h3>
+	<div class="l"><img src="1/6.png" width="750" height="849" border="0" alt=""></div>
+	<br>
+	<h3>7 請至『全局』>『積分設置』設定您論壇的交易積分方式，在這以金錢為例</h3>
+	<div class="l"><img src="1/7.png" width="318" height="430" border="0" alt=""></div><br>
+	<div class="l"><img src="1/8.png" width="686" height="548" border="0" alt=""></div>
+	<br>
+	<h3>8 請至『運營』>『電子商務』>『基本設置』設定您論壇的積分兌換方式</h3>
+	<div class="l"><img src="1/9.png" width="674" height="516" border="0" alt=""></div>
+	<br>
+	<h3>9 開啟充值功能，請至『基本設置』的左側『財付通』，在財付通設置中的賬號與密鑰，請隨便輸入後，按下提交</h3>
+	<div class="l"><img src="1/10.png" width="372" height="786" border="0" alt=""></div>
+	<br>
+	<h3>10 修改檔案並利用ftp上傳至相對應的資料夾</h3>
+	<p>一 請開啟source\language\lang_template.php，在第25行插入<br><code>'apitype_greenworld' => '綠界金流',</code></p>
+	<div class="l"><img src="1/11.png" width="507" height="212" border="0" alt=""></div><br>上傳至相對應的資料夾中覆蓋
+	<br>
+	<p>二 請開啟source\include\spacecp\spacecp_credit_base.php，在128行插入如下圖所示的反白程式碼<br></p>
+	<div class="l"><img src="1/12.png" width="880" height="315" border="0" alt=""></div><br>上傳至相對應的資料夾中覆蓋<br>
+	<font size="6" color="blue">為方便大大們copy，特地將程式碼文字化如下，請直接選取後copy貼上即可</font><br><code>if($apitype == 'greenworld'){
+	include DISCUZ_ROOT.'./api/trade/api_greenworld.php';
+	dexit();
+}</code>
+	<br>
+	<p>三 產生樣版檔，請先至前台，積分 > 充值，會看見財付通的付款方式，如下圖所示<br>
+	<font size="6" color="red">* 注意：若您有更換新的模板或是在您的後台『更新緩存』後，此步驟必需再做一次</font><br>
+	<div class="l"><img src="1/13.png" width="863" height="475" border="0" alt=""></div>
+	<br>
+	請用ftp連線至主機中，利用ftp下載並開啟data\template\X_X_home_spacecp_credit_base.tpl.php，利用搜尋，請先找到『支付方式』這4個字，</p><br>
+	<div class="l"><img src="1/14.png" width="1114" height="685" border="0" alt=""></div><br>
+	請註解2段程式碼如上圖的紅色框(註解語法&lt;!-- --&gt;)，並在各自註解的下方增加程式碼如上圖的藍色框<br>
+	<br><font size="6" color="blue">為方便大大們copy，特地將程式碼文字化如下，請直接選取後copy貼上即可</font><br>
+	第1段<code>&lt;form id="addfundsform" name="addfundsform" method="post" autocomplete="off" action="home.php?mod=spacecp&amp;ac=credit&amp;op=buy"&gt;</code>
+	<br><br>
+	第2段<code>&lt;label onclick="$('apitype_greenworld').checked=true;&lt;?php if($_G['setting']['card']['open']) { ?&gt;$('cardbox').style.display='none';if($('card_box_sec')){$('card_box_sec').style.display='none';}$('paybox').style.display='';&lt;?php } ?&gt;"&gt;&lt;input name="apitype" type="radio" value="greenworld" id="apitype_greenworld" checked="checked" /&gt;&lt;img title="綠界金流" alt="綠界金流" onclick="$('apitype_greenworld').checked=true" src="&lt;?php echo STATICURL;?&gt;image/common/greenworld_logo.jpg" /&gt;&lt;/label&gt;</code>
+	<br><br>修改好後，先將主機中的該檔刪除，並將修改好後的檔案上傳至相對應的資料夾
+	<br>按下F5重新整理你的網頁，此時即可看見綠界的支付方式
+	<div class="l"><img src="1/15.png" width="502" height="224" border="0" alt=""></div>
+	<br>
+	<br>
+	<div class="next">請按<a href="2.html">下一步</a>或	<a href="readme.html">回主選單</a></div>
+</div>

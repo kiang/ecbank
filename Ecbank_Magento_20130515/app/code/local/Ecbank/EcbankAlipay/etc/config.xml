@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * @category   Ecbank
+ * @package    Ecbank_EcbankAlipay
+ * @copyright  Copyright (c) 2010 Ecbank(http://www.ecbank.com.tw)
+ */
+-->
+<config>
+    <modules>
+        <Ecbank_EcbankAlipay>
+            <version>1.2.6</version>
+        </Ecbank_EcbankAlipay>
+    </modules>
+    <global>
+        <models>
+            <ecbankalipay>
+                <class>Ecbank_EcbankAlipay_Model</class>
+            </ecbankalipay>
+        </models>
+        <helpers>
+	      <ecbankalipay>
+            <class>Ecbank_EcbankAlipay_Helper</class>
+		  </ecbankalipay>
+	    </helpers>
+        <resources>
+            <ecbankalipay_setup>
+                <setup>
+                    <module>Ecbank_EcbankAlipay</module>
+                </setup>
+                <connection>
+                    <use>core_setup</use>
+                </connection>
+            </ecbankalipay_setup>
+            <ecbankalipay_write>
+                <connection>
+                    <use>core_write</use>
+                </connection>
+            </ecbankalipay_write>
+            <ecbankalipay_read>
+                <connection>
+                    <use>core_read</use>
+                </connection>
+            </ecbankalipay_read>
+        </resources>
+        <blocks>
+            <ecbankalipay><class>Ecbank_EcbankAlipay_Block</class></ecbankalipay>
+        </blocks>
+    </global>
+    <frontend>
+        <secure_url>
+            <ecbankalipay_processing>/ecbankalipay/processing</ecbankalipay_processing>
+        </secure_url>
+        <routers>
+            <ecbankalipay>
+                <use>standard</use>
+                <args>
+                    <module>Ecbank_EcbankAlipay</module>
+                    <frontName>ecbankalipay</frontName>
+                </args>
+            </ecbankalipay>
+        </routers>
+        <layout>
+            <updates>
+                <ecbankalipay>
+                    <file>ecbankalipay.xml</file>
+                </ecbankalipay>
+            </updates>
+        </layout>
+    </frontend>
+	<default>
+        <payment>        
+            <ecbankalipay_cc>
+                <active>0</active>
+                <model>ecbankalipay/cc</model>
+                <order_status>1</order_status>
+                <title>綠界支付寶繳費(Ecbank123)</title>
+                <allowspecific>0</allowspecific>
+            </ecbankalipay_cc>
+        </payment>
+    </default> 
+</config>

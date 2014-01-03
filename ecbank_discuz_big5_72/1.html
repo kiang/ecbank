@@ -1,0 +1,55 @@
+<meta http-equiv="Content-Type" content="text/html; charset=big5" />
+<div>
+	<h1>Step 1 - 插件安裝說明</h1>
+	<p>請先安裝好Discuz論壇，<A HREF="http://faq.comsenz.com/viewnews-892?from_comsnezdownload" target="_blank">安裝教學</A></p>
+	<p><font size="" color="red">注意：以下每個步驟皆是必需執行的，請不要忽略某一步驟，以免無法使用，謝謝。</font></p>
+	<h3>1 請先解壓縮檔案</font></h3>
+	<br>
+	<h3>2 此時您可看見2個資料夾與1個檔案</h3>
+	<div class="l"><img src="1/2.png" width="490" height="203" border="0"></div>
+	<br>
+	<h3>3 將這2個資料夾利用ftp上傳至您所安裝的discuz主機上，並且覆蓋</h3>
+	<br>
+	<h3>4 使用管理者帳號登入後台，選擇『插件』後，再選擇『導入』，選擇『上傳文件』，按下『瀏覽…』鈕，選擇解壓縮後的discuz_plugin_greenworld.xml上傳，並按下『提交』</h3>
+	<div class="l"><img src="1/3.png" width="728" height="440" border="0"></div>
+	<br>
+	<h3>5 成功後即會出現如下圖所示</h3>
+	<div class="l"><img src="1/4.png" width="701" height="429" border="0"></div>
+	<br>
+	<h3>6 啟用綠界金流插件，勾選『啟用』後按下提交</h3>
+	<div class="l"><img src="1/5.png" width="675" height="422" border="0"></div>
+	<br>
+	<h3>7 啟用後，會如下圖示，左側選單多一個綠界金流的插件</h3>
+	<div class="l"><IMG SRC="1/6.png" WIDTH="212" HEIGHT="244" BORDER="0"></div>
+	<br>
+	<h3>8 設定綠界金流的資料，依照右側說明，輸入您在綠界ECBank或ECPay所申請的商店代號、加密私鑰，並填入您所要充值的收款方式後，按下提交</h3>
+	<div class="l"><img src="1/7.png" width="582" height="721" border="0" alt=""></div>
+	<br>
+	<h3>9 請至『全局』>『積分設置』設定您論壇的交易積分方式</h3>
+	<div class="l"><IMG SRC="1/8.png" WIDTH="950" HEIGHT="938" BORDER="0"></div>
+	<br>
+	<h3>10 請至『擴展』>『電子商務』>『基本設置』設定您論壇的積分兌換方式</h3>
+	<div class="l"><IMG SRC="1/9.png" WIDTH="950" HEIGHT="938" BORDER="0"></div>
+	<br>
+	<h3>11 請至『擴展』>『電子商務』>『積分充值訂單』的查詢，如果有會員有充值的話，即可查詢的到訂單</h3>
+	<div class="l"><IMG SRC="1/10.png" WIDTH="950" HEIGHT="938" BORDER="0"></div>
+	<br>
+	<h3>12 開啟充值功能，請至『擴展』>『電子商務』>『支付寶』，在支付寶設置中的收款支付寶賬號，輸入隨便一組email(此步驟一定要做)</h3>
+	<div class="l"><IMG SRC="1/11.png" WIDTH="1004" HEIGHT="744" BORDER="0" ></div>
+	<br>
+	<h3>13 修改檔案並利用ftp上傳至相對應的資料夾</h3>
+	<p>一 請開啟templates\default\memcp_credits_action.htm</p>
+	<p>二 請在14行中，刪除如下圖所示的反白的程式碼</p>
+	<div class="l"><IMG SRC="1/12.png" WIDTH="988" HEIGHT="458" BORDER="0"></div>
+	<br>
+	<p>三 請先刪除約70行左右如下圖所示的反白的程式碼，並在該行增加如下圖所示的紅框程式碼</p>
+	<div class="l"><img src="1/13.png" width="1506" height="168" border="0"></div>
+	<br>
+	<p>四 請開啟templates\default\templates.lang.php</p>
+	<p>五 請在2380行中，增加如下圖所示的反白的程式碼</p>
+	<div class="l"><IMG SRC="1/14.png" WIDTH="552" HEIGHT="259" BORDER="0"></div>
+	<br>
+	<p>六 將上述檔案修改完後，上傳覆蓋即可</p>
+	<br>
+	<div class="next">請按<a href="2.html">下一步</a>或	<a href="readme.html">回主選單</a></div>
+</div>
